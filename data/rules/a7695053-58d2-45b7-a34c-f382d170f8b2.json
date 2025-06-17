@@ -1,0 +1,61 @@
+{
+  "id": "a7695053-58d2-45b7-a34c-f382d170f8b2",
+  "name": "Cursordone",
+  "image_path": "C:/Users/jogah/Pictures/CursorDone.png",
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "x": 1472,
+        "y": 1063
+      }
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 1.0
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "continue",
+        "interval": 0.0
+      }
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 1.0
+      }
+    },
+    {
+      "type": "key_press",
+      "params": {
+        "key": "enter",
+        "presses": 1,
+        "interval": 0.0
+      }
+    }
+  ],
+  "enabled": false,
+  "description": "",
+  "created_ts": 1749805452,
+  "priority": 200,
+  "capture_x": 0,
+  "capture_y": 0,
+  "capture_width": 0,
+  "capture_height": 0,
+  "monitor_idx": -1,
+  "condition_type": "image",
+  "screen_unchanged_timeout": 5.0,
+  "target_window_title": "",
+  "target_window_process": "",
+  "window_exact_match": false,
+  "target_window_class": "",
+  "window_id_method": "auto",
+  "cluster_group": "",
+  "disable_after_executions": 0,
+  "disable_on_image": "",
+  "execution_count": 0
+}

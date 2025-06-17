@@ -1,0 +1,30 @@
+{
+  "id": "128e7584-eb90-42a5-bde9-2194578b04a6",
+  "name": "Process-Based Rule",
+  "image_path": "",
+  "actions": [
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2
+      }
+    }
+  ],
+  "enabled": false,
+  "description": "Rule that targets by process name instead of window title",
+  "created_ts": 0,
+  "priority": 25,
+  "capture_x": 0,
+  "capture_y": 0,
+  "capture_width": 0,
+  "capture_height": 0,
+  "monitor_idx": -1,
+  "condition_type": "screen_unchanged",
+  "screen_unchanged_timeout": 0.1,
+  "target_window_title": "",
+  "target_window_process": "python.exe",
+  "window_exact_match": false,
+  "target_window_class": "",
+  "window_id_method": "auto",
+  "cluster_group": "python_apps"
+}

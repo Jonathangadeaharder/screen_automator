@@ -1,0 +1,42 @@
+{
+  "id": "97def8d0-eacb-41a2-a662-dd3d8c65340a",
+  "name": "ClaudeInput",
+  "image_path": "C:/Users/jogah/Pictures/claudecodearrow.png",
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "x": 807,
+        "y": 684
+      }
+    },
+    {
+      "type": "key_press",
+      "params": {
+        "key": "enter",
+        "presses": 1,
+        "interval": 0.0
+      }
+    }
+  ],
+  "enabled": true,
+  "description": "",
+  "created_ts": 1749817488,
+  "priority": 100,
+  "capture_x": 0,
+  "capture_y": 0,
+  "capture_width": 0,
+  "capture_height": 0,
+  "monitor_idx": -1,
+  "condition_type": "image",
+  "screen_unchanged_timeout": 5.0,
+  "target_window_title": "",
+  "target_window_process": "WindowsTerminal.exe",
+  "window_exact_match": false,
+  "target_window_class": "",
+  "window_id_method": "auto",
+  "cluster_group": "",
+  "disable_after_executions": 0,
+  "disable_on_image": "",
+  "execution_count": 4
+}

@@ -1,0 +1,49 @@
+{
+  "id": "2a990f15-5c0e-4d3a-a7d3-a1d3e9ed2786",
+  "name": "Claude Done",
+  "image_path": "",
+  "actions": [
+    {
+      "type": "click",
+      "params": {
+        "x": 817,
+        "y": 717
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "continue with fixing remaining issues or go to next file to find isses and improve translator",
+        "interval": 0.0
+      }
+    },
+    {
+      "type": "key_press",
+      "params": {
+        "key": "enter",
+        "presses": 1,
+        "interval": 0.0
+      }
+    }
+  ],
+  "enabled": true,
+  "description": "",
+  "created_ts": 1750043180,
+  "priority": 100,
+  "capture_x": 0,
+  "capture_y": 0,
+  "capture_width": 0,
+  "capture_height": 0,
+  "monitor_idx": -1,
+  "condition_type": "screen_unchanged",
+  "screen_unchanged_timeout": 0.5,
+  "target_window_title": "",
+  "target_window_process": "WindowsTerminal.exe",
+  "window_exact_match": false,
+  "target_window_class": "CASCADIA_HOSTING_WINDOW_CLASS",
+  "window_id_method": "class",
+  "cluster_group": "",
+  "disable_after_executions": 0,
+  "disable_on_image": "",
+  "execution_count": 10
+}

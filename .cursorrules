@@ -1,0 +1,164 @@
+# Screen Automator Project Rules
+
+## General Development Guidelines
+
+### Testing Rules
+- **ALWAYS add timeouts for GUI tests**: Any test that creates GUI components, windows, or interacts with tkinter/ttkbootstrap MUST include a timeout mechanism to prevent hanging
+- Use `pytest.mark.timeout(30)` or similar timeout decorators for GUI tests
+- Mock GUI components when possible instead of creating real windows
+- For unavoidable GUI creation, use subprocess with timeout or threading with timeout
+
+### Python Import Rules
+- Avoid naming conflicts between files and directories (e.g., `gui.py` file vs `gui/` directory)
+- Use absolute imports for better clarity: `from screen_automator.core import ScreenAutomator`
+- Avoid wildcard imports (`from module import *`)
+
+### Testing Best Practices
+- Use comprehensive mocking for external dependencies
+- Test both success and failure scenarios
+- Include integration tests alongside unit tests
+- Use `@patch` decorators to mock complex dependencies like tkinter, cv2, pyautogui
+- When testing CLI commands, use `subprocess.run` with proper timeout and error handling
+
+## Project-Specific Rules
+
+### GUI Development
+- Always initialize class attributes in `__init__` method
+- Use ttkbootstrap for modern UI components
+- Handle window closing gracefully with proper cleanup
+- Store GUI state in class attributes for testability
+
+### Core Functionality
+- Screen automation functions should have configurable timeouts
+- Image detection should handle missing files gracefully
+- Rule execution should be atomic and reversible where possible
+- Always restore mouse position after automation actions
+
+### File Structure
+- Keep test files in `tests/` directory
+- Use descriptive test file names: `test_<component>_<type>.py`
+- Separate unit tests, integration tests, and smoke tests
+- Store test data in `tests/data/` directory
+
+### Error Handling
+- Use proper exception handling for file operations
+- Log errors with appropriate detail level
+- Provide user-friendly error messages in GUI
+- Handle missing dependencies gracefully
+
+### Windows Compatibility
+- Avoid Unicode characters in console output (use ASCII alternatives)
+- Handle Windows-specific path separators
+- Test with both PowerShell and Command Prompt
+- Use `os.path.join()` for cross-platform paths
+
+### Dependencies
+- Pin dependency versions in requirements.txt
+- Separate dev dependencies in requirements-dev.txt
+- Use virtual environments for isolation
+- Document any system-level dependencies
+
+## Code Quality Standards
+
+### Documentation
+- Include docstrings for all public methods
+- Add type hints where beneficial
+- Keep README.md updated with setup instructions
+- Document any special configuration requirements
+
+### Testing Coverage
+- Aim for >80% code coverage on core modules
+- Test edge cases and error conditions
+- Mock external services and hardware interactions
+- Use parametrized tests for multiple input scenarios
+
+### Performance
+- Avoid blocking operations in GUI thread
+- Use threading for long-running operations
+- Implement proper cleanup for resources
+- Profile image detection performance
+
+## Common Patterns to Follow
+
+### GUI Test Pattern
+```python
+import pytest
+from unittest.mock import patch, MagicMock
+
+@pytest.mark.timeout(30)  # Always add timeout
+@patch('tkinter.Tk')
+@patch('ttkbootstrap.Window')
+def test_gui_component(mock_window, mock_tk):
+    # Setup mocks
+    mock_instance = MagicMock()
+    mock_window.return_value = mock_instance
+    
+    # Test logic here
+    # Assert on mock calls
+```
+
+### CLI Test Pattern
+```python
+def test_cli_command():
+    result = subprocess.run([
+        sys.executable, 'cli.py', 'command'
+    ], capture_output=True, text=True, timeout=10)
+    
+    assert result.returncode == 0
+    assert expected_output in result.stdout
+```
+
+### Core Module Test Pattern
+```python
+@patch('cv2.imread')
+@patch('pyautogui.screenshot')
+def test_core_functionality(mock_screenshot, mock_imread):
+    # Mock external dependencies
+    # Test core logic
+    # Verify behavior
+```
+
+## Troubleshooting Guidelines
+
+### GUI Hanging Issues
+- Always mock GUI creation in tests
+- Use timeouts for any real GUI instantiation
+- Check for missing attribute initialization
+- Verify all GUI cleanup is performed
+
+### Import Errors
+- Check for circular imports
+- Verify module structure matches import statements
+- Use absolute imports from project root
+- Check for naming conflicts
+
+### Test Failures
+- Run tests individually to isolate issues
+- Check mock setup and assertions
+- Verify test data exists and is accessible
+- Ensure proper cleanup between tests
+
+## Development Workflow
+
+1. Write tests first (TDD approach)
+2. Implement functionality to pass tests
+3. Run full test suite before committing
+4. Use type hints and docstrings
+5. Update documentation with changes
+6. Test on target platform (Windows)
+
+## Security Considerations
+
+- Validate all user inputs
+- Sanitize file paths
+- Handle untrusted image files safely
+- Avoid executing arbitrary code from rules
+- Log security-relevant events
+
+## Performance Guidelines
+
+- Cache expensive operations where possible
+- Use appropriate data structures
+- Profile before optimizing
+- Consider memory usage for large images
+- Implement proper resource cleanup 

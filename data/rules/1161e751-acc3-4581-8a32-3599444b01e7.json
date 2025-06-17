@@ -1,0 +1,30 @@
+{
+  "id": "1161e751-acc3-4581-8a32-3599444b01e7",
+  "name": "Test Context Switching",
+  "image_path": "",
+  "actions": [
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2
+      }
+    }
+  ],
+  "enabled": false,
+  "description": "Test rule to verify context switching works",
+  "created_ts": 0,
+  "priority": 50,
+  "capture_x": 0,
+  "capture_y": 0,
+  "capture_width": 0,
+  "capture_height": 0,
+  "monitor_idx": -1,
+  "condition_type": "screen_unchanged",
+  "screen_unchanged_timeout": 0.1,
+  "target_window_title": "Screen Automator",
+  "target_window_process": "",
+  "window_exact_match": true,
+  "target_window_class": "",
+  "window_id_method": "auto",
+  "cluster_group": ""
+}
