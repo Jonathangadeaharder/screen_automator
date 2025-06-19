@@ -1,7 +1,7 @@
 {
   "id": "97def8d0-eacb-41a2-a662-dd3d8c65340a",
   "name": "ClaudeInput",
-  "image_path": "C:/Users/jogah/Pictures/claudecodearrow.png",
+  "image_path": "C:/Users/Jonandrop/Pictures/claudeyes.png",
   "actions": [
     {
       "type": "click",
@@ -33,10 +33,10 @@
   "target_window_title": "",
   "target_window_process": "WindowsTerminal.exe",
   "window_exact_match": false,
-  "target_window_class": "",
-  "window_id_method": "auto",
+  "target_window_class": "CASCADIA_HOSTING_WINDOW_CLASS",
+  "window_id_method": "class",
   "cluster_group": "",
   "disable_after_executions": 0,
   "disable_on_image": "",
-  "execution_count": 4
+  "execution_count": 16
 }

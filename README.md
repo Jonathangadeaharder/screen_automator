@@ -141,8 +141,8 @@ python cli.py config --interval 0.5
 ### Action Limit
 Set maximum number of actions before auto-stopping (safety feature):
 ```bash
-python cli.py config --max-actions 100  # Stop after 100 actions
-python cli.py config --max-actions 0    # Disable limit (default)
+# Note: Action limits are now configured per-rule in the rule editor
+# Use the "Disable after executions" setting when creating/editing rules
 ```
 
 Reset action counter:

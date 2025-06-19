@@ -273,6 +273,12 @@ class RuleManager:
             return False
         
         rule = self.rules[rule_id]
+        
+        # Check if rule is being enabled and reset execution counter
+        if 'enabled' in kwargs and kwargs['enabled'] and not rule.enabled:
+            # Rule is being enabled from disabled state - reset execution counter
+            kwargs['execution_count'] = 0
+        
         for key, value in kwargs.items():
             if hasattr(rule, key):
                 setattr(rule, key, value)

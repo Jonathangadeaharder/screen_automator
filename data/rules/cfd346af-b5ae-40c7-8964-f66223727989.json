@@ -1,0 +1,34 @@
+{
+  "id": "cfd346af-b5ae-40c7-8964-f66223727989",
+  "name": "WindSurfContinue",
+  "image_path": "C:/Users/Jonandrop/Pictures/WindsurfContinue.png",
+  "actions": [
+    {
+      "type": "click_image",
+      "params": {
+        "image_path": "C:/Users/Jonandrop/Pictures/WindsurfContinue.png",
+        "confidence": 0.8
+      }
+    }
+  ],
+  "enabled": false,
+  "description": "",
+  "created_ts": 1750243856,
+  "priority": 100,
+  "capture_x": 0,
+  "capture_y": 0,
+  "capture_width": 0,
+  "capture_height": 0,
+  "monitor_idx": -1,
+  "condition_type": "image",
+  "screen_unchanged_timeout": 5.0,
+  "target_window_title": "",
+  "target_window_process": "Windsurf.exe",
+  "window_exact_match": false,
+  "target_window_class": "Chrome_WidgetWin_1",
+  "window_id_method": "class",
+  "cluster_group": "",
+  "disable_after_executions": 0,
+  "disable_on_image": "",
+  "execution_count": 2
+}

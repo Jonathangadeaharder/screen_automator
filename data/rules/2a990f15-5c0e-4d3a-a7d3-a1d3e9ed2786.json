@@ -43,7 +43,7 @@
   "target_window_class": "CASCADIA_HOSTING_WINDOW_CLASS",
   "window_id_method": "class",
   "cluster_group": "",
-  "disable_after_executions": 0,
+  "disable_after_executions": 45,
   "disable_on_image": "",
-  "execution_count": 10
+  "execution_count": 14
 }

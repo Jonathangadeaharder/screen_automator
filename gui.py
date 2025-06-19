@@ -540,6 +540,24 @@ class ScreenAutomatorGUI:
         priority_note = ttk.Label(info_frame, text="Note: Rule priority is determined by the order in the rules list. Drag and drop to reorder.")
         priority_note.grid(row=2, column=0, columnspan=2, sticky=tk.W, padx=5, pady=2)
         
+        # Auto-disable options
+        ttk.Label(info_frame, text="Disable after executions:").grid(row=3, column=0, sticky=tk.W, padx=5, pady=2)
+        self.disable_after_var = tk.IntVar(value=0)
+        disable_frame = ttk.Frame(info_frame)
+        disable_frame.grid(row=3, column=1, sticky=tk.W, padx=5, pady=2)
+        
+        ttk.Spinbox(disable_frame, from_=0, to=9999, textvariable=self.disable_after_var, width=10).pack(side=tk.LEFT)
+        ttk.Label(disable_frame, text="(0 = never disable)").pack(side=tk.LEFT, padx=5)
+        
+        # Disable on image detection
+        ttk.Label(info_frame, text="Disable on image:").grid(row=4, column=0, sticky=tk.W, padx=5, pady=2)
+        self.disable_image_var = tk.StringVar()
+        disable_image_frame = ttk.Frame(info_frame)
+        disable_image_frame.grid(row=4, column=1, sticky=tk.W+tk.E, padx=5, pady=2)
+        
+        ttk.Entry(disable_image_frame, textvariable=self.disable_image_var, width=25).pack(side=tk.LEFT, fill=tk.X, expand=True)
+        ttk.Button(disable_image_frame, text="Browse...", command=self.browse_disable_image).pack(side=tk.LEFT, padx=(5, 0))
+        
         # Condition type section
         condition_frame = ttk.LabelFrame(self.editor_frame, text="Rule Condition")
         condition_frame.pack(fill=tk.X, padx=5, pady=5)
@@ -734,17 +752,9 @@ class ScreenAutomatorGUI:
         
         ttk.Label(interval_frame, text="seconds").pack(side=tk.LEFT, padx=5)
         
-        # Action limit setting
-        ttk.Label(settings_grid, text="Action Limit:", font=self.normal_font).grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
-        
-        action_limit_frame = ttk.Frame(settings_grid)
-        action_limit_frame.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
-        
-        self.max_actions_var = tk.IntVar(value=0)
-        action_limit_spin = ttk.Spinbox(action_limit_frame, from_=0, to=10000, increment=1, textvariable=self.max_actions_var, width=10)
-        action_limit_spin.pack(side=tk.LEFT)
-        
-        ttk.Label(action_limit_frame, text="actions (0 = no limit)").pack(side=tk.LEFT, padx=5)
+        # Note: Action limits are now configured per-rule in rule settings
+        ttk.Label(settings_grid, text="Note:", font=self.normal_font).grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
+        ttk.Label(settings_grid, text="Action limits are now configured per-rule", font=self.normal_font).grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
         
         # Apply and Reset buttons
         button_frame = ttk.Frame(settings_grid)
@@ -1097,6 +1107,8 @@ class ScreenAutomatorGUI:
         self.image_path_var.set("")
         self.condition_var.set("image")
         self.timeout_var.set(5.0)
+        self.disable_after_var.set(0)
+        self.disable_image_var.set("")
         
         # Clear window targeting fields
         self.target_window_class_var.set("")
@@ -1142,6 +1154,8 @@ class ScreenAutomatorGUI:
         self.image_path_var.set(self.current_rule.image_path)
         self.condition_var.set(getattr(self.current_rule, 'condition_type', 'image'))
         self.timeout_var.set(getattr(self.current_rule, 'screen_unchanged_timeout', 5.0))
+        self.disable_after_var.set(getattr(self.current_rule, 'disable_after_executions', 0))
+        self.disable_image_var.set(getattr(self.current_rule, 'disable_on_image', ''))
         
         # Populate window targeting fields
         self.target_window_class_var.set(getattr(self.current_rule, 'target_window_class', ''))
@@ -1294,6 +1308,16 @@ class ScreenAutomatorGUI:
         if file_path:
             self.image_path_var.set(file_path)
             self.load_image_preview(file_path)
+    
+    def browse_disable_image(self):
+        """Browse for an image to use as disable trigger"""
+        file_path = filedialog.askopenfilename(
+            title="Select Disable Trigger Image",
+            filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp *.gif")]
+        )
+        
+        if file_path:
+            self.disable_image_var.set(file_path)
     
     def capture_screen_region(self):
         """Capture screen region as trigger image"""
@@ -1616,7 +1640,9 @@ class ScreenAutomatorGUI:
                     window_id_method=self.window_id_method_var.get(),
                     target_window_title="",  # Empty for backward compatibility
                     window_exact_match=False,  # Default for backward compatibility
-                    cluster_group=self.cluster_group_var.get()
+                    cluster_group=self.cluster_group_var.get(),
+                    disable_after_executions=self.disable_after_var.get(),
+                    disable_on_image=self.disable_image_var.get()
                 )
                 messagebox.showinfo("Success", f"Rule '{name}' updated")
             else:
@@ -1643,7 +1669,9 @@ class ScreenAutomatorGUI:
                     window_id_method=self.window_id_method_var.get(),
                     target_window_title="",  # Empty for backward compatibility
                     window_exact_match=False,  # Default for backward compatibility
-                    cluster_group=self.cluster_group_var.get()
+                    cluster_group=self.cluster_group_var.get(),
+                    disable_after_executions=self.disable_after_var.get(),
+                    disable_on_image=self.disable_image_var.get()
                 )
                 
                 rule_type = "Image-based" if condition_type == "image" else "Screen unchanged"
@@ -1739,16 +1767,11 @@ class ScreenAutomatorGUI:
         """Apply settings"""
         try:
             interval = self.interval_var.get()
-            max_actions = self.max_actions_var.get()
             
             self.automator.set_check_interval(interval)
-            self.automator.set_max_actions(max_actions)
             
             self.log_message(f"Check interval set to {interval} seconds")
-            if max_actions > 0:
-                self.log_message(f"Action limit set to {max_actions} actions")
-            else:
-                self.log_message("Action limit disabled (no limit)")
+            self.log_message("Action limits are now configured per-rule")
         except Exception as e:
             self.log_message(f"Error applying settings: {e}")
     
@@ -1834,17 +1857,11 @@ class ScreenAutomatorGUI:
                 status = self.automator.get_status()
                 is_running = status['running']
                 actions_executed = status.get('actions_executed', 0)
-                max_actions = status.get('max_actions', 0)
                 
                 status_text = "Running" if is_running else "Stopped"
                 
-                # Update action counter display
-                if max_actions > 0:
-                    action_text = f"Actions: {actions_executed}/{max_actions}"
-                    if actions_executed >= max_actions:
-                        action_text += " (LIMIT REACHED)"
-                else:
-                    action_text = f"Actions: {actions_executed}" if is_running or actions_executed > 0 else ""
+                # Update action counter display (global action limits removed)
+                action_text = f"Actions: {actions_executed}" if is_running or actions_executed > 0 else ""
                 
                 # Avoid unnecessary UI updates if status hasn't changed
                 if self.status_var.get() != status_text:

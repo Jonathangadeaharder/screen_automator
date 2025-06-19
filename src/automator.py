@@ -41,8 +41,7 @@ class ScreenAutomator:
         self.last_rule_execution_time: Dict[str, float] = {}  # Maps rule_id to last execution time
         self.min_rule_interval = 5.0  # Minimum 5 seconds between rule executions
         
-        # Action limit tracking
-        self.max_actions = 0  # 0 = no limit
+        # Action tracking (global action limits removed)
         self.actions_executed = 0  # Count of actions executed in current session
         
         # Screen unchanged tracking
@@ -113,10 +112,7 @@ class ScreenAutomator:
         self.worker_thread = threading.Thread(target=self._monitor_loop, daemon=True)
         self.worker_thread.start()
         
-        if self.max_actions > 0:
-            print(f"Screen monitoring started (limit: {self.max_actions} actions)")
-        else:
-            print("Screen monitoring started (no action limit)")
+        print("Screen monitoring started")
     
     def stop_monitoring(self):
         """Stop monitoring the screen"""
@@ -154,11 +150,7 @@ class ScreenAutomator:
         """Main monitoring loop with per-monitor capture support"""
         while self.running:
             try:
-                # Check action limit
-                if self.max_actions > 0 and self.actions_executed >= self.max_actions:
-                    print(f"Action limit reached ({self.actions_executed}/{self.max_actions}). Stopping monitoring.")
-                    self.running = False
-                    break
+                # Note: Global action limit removed - now handled per-rule
                 
                 if not self._is_mouse_idle():
                     time.sleep(0.1)
@@ -250,8 +242,7 @@ class ScreenAutomator:
                     # Update action counter
                     actions_executed_in_rule = len(rule.actions)
                     self.actions_executed += actions_executed_in_rule
-                    print(f"Executed {actions_executed_in_rule} actions. Total: {self.actions_executed}" + 
-                          (f"/{self.max_actions}" if self.max_actions > 0 else ""))
+                    print(f"Executed {actions_executed_in_rule} actions. Total: {self.actions_executed}")
                     
                     self.last_rule_execution_time[rule.id] = time.time()
                     
@@ -326,23 +317,38 @@ class ScreenAutomator:
                         # Execute the rule's actions
                         print(f"Executing actions for rule '{rule.name}'")
                         self.executing_actions = True
-                        self.action_executor.execute_actions(rule.actions, stop_condition=lambda: not self._is_mouse_idle() or self.stop_execution)
+                        success = self.action_executor.execute_actions(rule.actions, stop_condition=lambda: not self._is_mouse_idle() or self.stop_execution)
                         self.executing_actions = False
                         
-                        # Update action counter
-                        actions_executed_in_rule = len(rule.actions)
-                        self.actions_executed += actions_executed_in_rule
-                        print(f"Executed {actions_executed_in_rule} actions. Total: {self.actions_executed}" + 
-                              (f"/{self.max_actions}" if self.max_actions > 0 else ""))
-                        
-                        self.last_rule_execution_time[rule.id] = time.time()
-                        
-                        if self.on_rule_triggered:
-                            self.on_rule_triggered(rule)
-                        
-                        if self.on_action_executed:
-                            for idx, _ in enumerate(rule.actions):
-                                self.on_action_executed(rule, idx)
+                        if success:
+                            # Update action counter
+                            actions_executed_in_rule = len(rule.actions)
+                            self.actions_executed += actions_executed_in_rule
+                            print(f"Executed {actions_executed_in_rule} actions. Total: {self.actions_executed}")
+                            
+                            # Increment rule execution count
+                            rule.execution_count += 1
+                            self.rule_manager.update_rule(rule.id, execution_count=rule.execution_count)
+                            
+                            # Check if rule should be disabled after X executions
+                            if rule.disable_after_executions > 0 and rule.execution_count >= rule.disable_after_executions:
+                                print(f"⚠️ Rule '{rule.name}' reached execution limit ({rule.execution_count}/{rule.disable_after_executions}), disabling")
+                                self.rule_manager.update_rule(rule.id, enabled=False)
+                                
+                                # Notify that rule was disabled
+                                if self.on_rule_disabled:
+                                    self.on_rule_disabled(rule, f"Execution limit reached ({rule.execution_count}/{rule.disable_after_executions})")
+                            
+                            self.last_rule_execution_time[rule.id] = time.time()
+                            
+                            if self.on_rule_triggered:
+                                self.on_rule_triggered(rule)
+                            
+                            if self.on_action_executed:
+                                for idx, _ in enumerate(rule.actions):
+                                    self.on_action_executed(rule, idx)
+                        else:
+                            print(f"Failed to execute rule '{rule.name}'")
             
             except Exception as e:
                 msg = f"Error processing rule '{rule.name}': {e}"
@@ -418,7 +424,6 @@ class ScreenAutomator:
             "total_rules": len(self.rule_manager.rules),
             "enabled_rules": len(self.rule_manager.list_enabled_rules()),
             "min_rule_interval": self.min_rule_interval,
-            "max_actions": self.max_actions,
             "actions_executed": self.actions_executed
         }
         
@@ -426,9 +431,7 @@ class ScreenAutomator:
         """Set the minimum interval between rule executions"""
         self.min_rule_interval = max(0.5, interval)  # Minimum 0.5 seconds
     
-    def set_max_actions(self, max_actions: int):
-        """Set the maximum number of actions to execute before auto-stopping"""
-        self.max_actions = max(0, max_actions)  # 0 = no limit
+    # Note: Global action limits removed - use per-rule disable_after_executions instead
         
     def reset_action_counter(self):
         """Reset the action execution counter"""
@@ -467,7 +470,6 @@ class ScreenAutomator:
                     break
             
             # Print action summary
-            print(f"Total actions executed: {self.actions_executed}" + 
-                  (f"/{self.max_actions}" if self.max_actions > 0 else ""))
+            print(f"Actions executed: {self.actions_executed}")
         finally:
             self.executing_actions = False

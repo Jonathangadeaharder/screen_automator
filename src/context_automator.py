@@ -118,11 +118,7 @@ class ContextAwareAutomator(ScreenAutomator):
         
         while self.running:
             try:
-                # Check action limit
-                if self.max_actions > 0 and self.actions_executed >= self.max_actions:
-                    logger.info(f"Action limit reached ({self.actions_executed}/{self.max_actions}). Stopping monitoring.")
-                    self.running = False
-                    break
+                # Note: Global action limit removed - now handled per-rule
                 
                 # Check for user activity - restore original window if user is active
                 if not self._is_mouse_idle():

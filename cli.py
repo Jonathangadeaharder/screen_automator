@@ -85,14 +85,10 @@ def status(ctx):
     click.echo(f"  Total Rules: {status_info['total_rules']}")
     click.echo(f"  Enabled Rules: {status_info['enabled_rules']}")
     
-    max_actions = status_info.get('max_actions', 0)
     actions_executed = status_info.get('actions_executed', 0)
-    if max_actions > 0:
-        click.echo(f"  Action Limit: {actions_executed}/{max_actions}")
-        if actions_executed >= max_actions:
-            click.echo("  Status: ACTION LIMIT REACHED")
-    else:
-        click.echo(f"  Actions Executed: {actions_executed} (no limit)")
+    
+    # Note: Action limits are now configured per-rule
+    click.echo(f"  Actions Executed: {actions_executed}")
 
 
 @cli.group()
@@ -436,9 +432,8 @@ def import_rules(ctx, filepath):
 
 @cli.command()
 @click.option('--interval', type=float, help='Check interval in seconds')
-@click.option('--max-actions', type=int, help='Maximum actions before auto-stop (0 = no limit)')
 @click.pass_context
-def config(ctx, interval, max_actions):
+def config(ctx, interval):
     """Configure automator settings"""
     automator = ctx.obj['automator']
     
@@ -446,22 +441,13 @@ def config(ctx, interval, max_actions):
         automator.set_check_interval(interval)
         click.echo(f"✅ Check interval set to {interval}s")
     
-    if max_actions is not None:
-        automator.set_max_actions(max_actions)
-        if max_actions > 0:
-            click.echo(f"✅ Action limit set to {max_actions} actions")
-        else:
-            click.echo("✅ Action limit disabled (no limit)")
+    # Note: Action limits are now configured per-rule in rule settings
     
     status_info = automator.get_status()
     click.echo(f"Current check interval: {status_info['check_interval']}s")
     
-    max_actions_status = status_info.get('max_actions', 0)
     actions_executed = status_info.get('actions_executed', 0)
-    if max_actions_status > 0:
-        click.echo(f"Action limit: {actions_executed}/{max_actions_status}")
-    else:
-                 click.echo(f"Action limit: disabled (executed: {actions_executed})")
+    click.echo(f"Actions executed: {actions_executed}")
 
 
 @cli.command()
