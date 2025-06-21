@@ -1,7 +1,7 @@
 {
   "id": "97def8d0-eacb-41a2-a662-dd3d8c65340a",
   "name": "ClaudeInput",
-  "image_path": "C:/Users/Jonandrop/Pictures/claudeyes.png",
+  "image_path": "C:/Users/jogah/Pictures/yesclaude.png",
   "actions": [
     {
       "type": "click",
@@ -19,7 +19,7 @@
       }
     }
   ],
-  "enabled": true,
+  "enabled": false,
   "description": "",
   "created_ts": 1749817488,
   "priority": 100,
@@ -37,6 +37,6 @@
   "window_id_method": "class",
   "cluster_group": "",
   "disable_after_executions": 0,
-  "disable_on_image": "",
-  "execution_count": 16
+  "disable_on_image": "C:/Users/jogah/Pictures/Screenshots/Screenshot 2025-06-20 162614.png",
+  "execution_count": 0
 }

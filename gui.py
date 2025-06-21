@@ -733,6 +733,14 @@ class ScreenAutomatorGUI:
         self.toggle_monitoring_button = ttk.Button(control_frame, text="▶ Start", command=self.toggle_monitoring, style='Accent.TButton')
         self.toggle_monitoring_button.pack(side=tk.LEFT, padx=5)
         
+        # Schedule button
+        self.schedule_button = ttk.Button(control_frame, text="⏰ Schedule", command=self.schedule_monitoring, style='TButton')
+        self.schedule_button.pack(side=tk.LEFT, padx=5)
+        
+        # Schedule status variables
+        self.scheduled_timer = None
+        self.schedule_active = False
+        
         # Settings section
         settings_frame = ttk.LabelFrame(main_container, text="Settings", padding="10 5 10 10")
         settings_frame.pack(fill=tk.X, pady=10)
@@ -1755,6 +1763,10 @@ class ScreenAutomatorGUI:
         if self.automator.is_running():
             self.automator.stop()
             self.log_message("Monitoring stopped.")
+        
+        # Cancel any active schedule when stopping
+        if self.schedule_active:
+            self.cancel_schedule()
 
     def toggle_monitoring(self):
         """Toggle monitoring state."""
@@ -1762,6 +1774,79 @@ class ScreenAutomatorGUI:
             self.stop_monitoring()
         else:
             self.start_monitoring()
+    
+    def schedule_monitoring(self):
+        """Schedule monitoring to start after a specified delay."""
+        if self.schedule_active:
+            # Cancel existing schedule
+            self.cancel_schedule()
+            return
+            
+        if self.automator.is_running():
+            messagebox.showwarning("Already Running", "Monitoring is already active. Stop it first to schedule a new start.")
+            return
+            
+        # Get delay time from user
+        delay_str = simpledialog.askstring(
+            "Schedule Monitoring",
+            "Enter delay time in seconds:\n(e.g., 30 for 30 seconds, 300 for 5 minutes)",
+            initialvalue="30"
+        )
+        
+        if not delay_str:
+            return
+            
+        try:
+            delay = float(delay_str)
+            if delay <= 0:
+                messagebox.showerror("Invalid Input", "Delay must be a positive number.")
+                return
+                
+            # Start countdown
+            self.start_schedule_countdown(delay)
+            
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter a valid number for the delay.")
+    
+    def start_schedule_countdown(self, delay):
+        """Start the countdown timer for scheduled monitoring."""
+        self.schedule_active = True
+        self.schedule_button.config(text="❌ Cancel Schedule")
+        
+        # Log the schedule
+        self.log_message(f"⏰ Monitoring scheduled to start in {delay} seconds")
+        
+        # Start countdown in a separate thread
+        def countdown():
+            remaining = delay
+            while remaining > 0 and self.schedule_active:
+                if remaining <= 10 or remaining % 30 == 0:  # Show countdown for last 10 seconds or every 30 seconds
+                    self.log_message(f"⏰ Starting in {int(remaining)} seconds...")
+                time.sleep(1)
+                remaining -= 1
+                
+            if self.schedule_active:  # Only start if schedule wasn't cancelled
+                self.root.after(0, self.execute_scheduled_start)
+        
+        self.scheduled_timer = threading.Thread(target=countdown, daemon=True)
+        self.scheduled_timer.start()
+    
+    def execute_scheduled_start(self):
+        """Execute the scheduled start of monitoring."""
+        self.schedule_active = False
+        self.schedule_button.config(text="⏰ Schedule")
+        
+        if not self.automator.is_running():
+            self.log_message("🚀 Starting scheduled monitoring...")
+            self.start_monitoring()
+        else:
+            self.log_message("⚠️ Monitoring was already started manually")
+    
+    def cancel_schedule(self):
+        """Cancel the scheduled monitoring start."""
+        self.schedule_active = False
+        self.schedule_button.config(text="⏰ Schedule")
+        self.log_message("❌ Scheduled monitoring cancelled")
 
     def apply_settings(self):
         """Apply settings"""

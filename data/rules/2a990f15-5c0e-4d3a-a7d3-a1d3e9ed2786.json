@@ -26,7 +26,7 @@
       }
     }
   ],
-  "enabled": true,
+  "enabled": false,
   "description": "",
   "created_ts": 1750043180,
   "priority": 100,
@@ -43,7 +43,7 @@
   "target_window_class": "CASCADIA_HOSTING_WINDOW_CLASS",
   "window_id_method": "class",
   "cluster_group": "",
-  "disable_after_executions": 45,
-  "disable_on_image": "",
-  "execution_count": 14
+  "disable_after_executions": 0,
+  "disable_on_image": "C:/Users/jogah/Pictures/Screenshots/Screenshot 2025-06-20 162614.png",
+  "execution_count": 0
 }
