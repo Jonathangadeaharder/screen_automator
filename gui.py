@@ -675,6 +675,7 @@ class ScreenAutomatorGUI:
         action_controls = ttk.Frame(actions_frame)
         action_controls.pack(fill=tk.X, pady=5)
         
+        ttk.Button(action_controls, text="Edit Selected", command=self.edit_action).pack(side=tk.LEFT, padx=5)
         ttk.Button(action_controls, text="Remove Selected", command=self.remove_action).pack(side=tk.LEFT, padx=5)
         ttk.Button(action_controls, text="Move Up", command=self.move_action_up).pack(side=tk.LEFT, padx=5)
         ttk.Button(action_controls, text="Move Down", command=self.move_action_down).pack(side=tk.LEFT, padx=5)
@@ -1565,6 +1566,86 @@ class ScreenAutomatorGUI:
             self.actions_listbox.insert(index+1, self.action_to_string(self.current_actions[index+1]))
             self.actions_listbox.selection_set(index+1)
     
+    def edit_action(self):
+        """Edit selected action"""
+        selection = self.actions_listbox.curselection()
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select an action to edit")
+            return
+        
+        index = selection[0]
+        current_action = self.current_actions[index]
+        
+        # Create appropriate dialog based on action type
+        if current_action.type == ActionType.TYPE_TEXT:
+            dialog = EditTextActionDialog(self.root, current_action.params['text'])
+            new_text = dialog.get_text()
+            if new_text is not None:
+                # Update the action
+                self.current_actions[index] = create_type_text_action(new_text)
+                # Update the listbox display
+                self.actions_listbox.delete(index)
+                self.actions_listbox.insert(index, self.action_to_string(self.current_actions[index]))
+                self.actions_listbox.selection_set(index)
+        elif current_action.type == ActionType.KEY_PRESS:
+            dialog = EditKeyActionDialog(self.root, current_action.params['key'])
+            new_key = dialog.get_key()
+            if new_key is not None:
+                # Update the action
+                self.current_actions[index] = create_key_press_action(new_key)
+                # Update the listbox display
+                self.actions_listbox.delete(index)
+                self.actions_listbox.insert(index, self.action_to_string(self.current_actions[index]))
+                self.actions_listbox.selection_set(index)
+        elif current_action.type == ActionType.KEY_COMBINATION:
+            dialog = EditKeyComboActionDialog(self.root, current_action.params['keys'])
+            new_keys = dialog.get_keys()
+            if new_keys is not None:
+                # Update the action
+                self.current_actions[index] = create_key_combination_action(new_keys)
+                # Update the listbox display
+                self.actions_listbox.delete(index)
+                self.actions_listbox.insert(index, self.action_to_string(self.current_actions[index]))
+                self.actions_listbox.selection_set(index)
+        elif current_action.type == ActionType.WAIT:
+            dialog = EditWaitActionDialog(self.root, current_action.params['duration'])
+            new_duration = dialog.get_duration()
+            if new_duration is not None:
+                # Update the action
+                self.current_actions[index] = create_wait_action(new_duration)
+                # Update the listbox display
+                self.actions_listbox.delete(index)
+                self.actions_listbox.insert(index, self.action_to_string(self.current_actions[index]))
+                self.actions_listbox.selection_set(index)
+        elif current_action.type in [ActionType.CLICK, ActionType.DOUBLE_CLICK, ActionType.RIGHT_CLICK]:
+            dialog = EditClickActionDialog(self.root, current_action.type, current_action.params['x'], current_action.params['y'])
+            result = dialog.get_coordinates()
+            if result is not None:
+                x, y = result
+                # Update the action based on type
+                if current_action.type == ActionType.CLICK:
+                    self.current_actions[index] = create_click_action(x, y)
+                elif current_action.type == ActionType.DOUBLE_CLICK:
+                    self.current_actions[index] = create_double_click_action(x, y)
+                elif current_action.type == ActionType.RIGHT_CLICK:
+                    self.current_actions[index] = create_right_click_action(x, y)
+                # Update the listbox display
+                self.actions_listbox.delete(index)
+                self.actions_listbox.insert(index, self.action_to_string(self.current_actions[index]))
+                self.actions_listbox.selection_set(index)
+        elif current_action.type == ActionType.SCROLL:
+            dialog = EditScrollActionDialog(self.root, current_action.params['clicks'])
+            new_clicks = dialog.get_clicks()
+            if new_clicks is not None:
+                # Update the action
+                self.current_actions[index] = create_scroll_action(new_clicks)
+                # Update the listbox display
+                self.actions_listbox.delete(index)
+                self.actions_listbox.insert(index, self.action_to_string(self.current_actions[index]))
+                self.actions_listbox.selection_set(index)
+        else:
+            messagebox.showinfo("Not Editable", f"Actions of type '{current_action.type.value}' cannot be edited")
+    
     def action_to_string(self, action):
         """Convert action to display string"""
         if action.type == ActionType.CLICK:
@@ -1786,35 +1867,23 @@ class ScreenAutomatorGUI:
             messagebox.showwarning("Already Running", "Monitoring is already active. Stop it first to schedule a new start.")
             return
             
-        # Get delay time from user
-        delay_str = simpledialog.askstring(
-            "Schedule Monitoring",
-            "Enter delay time in seconds:\n(e.g., 30 for 30 seconds, 300 for 5 minutes)",
-            initialvalue="30"
-        )
+        # Create custom time input dialog
+        delay = self._get_time_delay_dialog()
         
-        if not delay_str:
-            return
-            
-        try:
-            delay = float(delay_str)
-            if delay <= 0:
-                messagebox.showerror("Invalid Input", "Delay must be a positive number.")
-                return
-                
+        if delay is not None and delay > 0:
             # Start countdown
             self.start_schedule_countdown(delay)
-            
-        except ValueError:
-            messagebox.showerror("Invalid Input", "Please enter a valid number for the delay.")
+        elif delay is not None:
+            messagebox.showerror("Invalid Input", "Delay must be greater than 0.")
     
     def start_schedule_countdown(self, delay):
         """Start the countdown timer for scheduled monitoring."""
         self.schedule_active = True
         self.schedule_button.config(text="❌ Cancel Schedule")
         
-        # Log the schedule
-        self.log_message(f"⏰ Monitoring scheduled to start in {delay} seconds")
+        # Log the schedule with user-friendly time format
+        time_str = self._format_time_duration(delay)
+        self.log_message(f"⏰ Monitoring scheduled to start in {time_str}")
         
         # Start countdown in a separate thread
         def countdown():
@@ -1831,6 +1900,115 @@ class ScreenAutomatorGUI:
         self.scheduled_timer = threading.Thread(target=countdown, daemon=True)
         self.scheduled_timer.start()
     
+    def _get_time_delay_dialog(self):
+        """Show a custom dialog to get time delay in hours, minutes, and seconds."""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Schedule Monitoring")
+        dialog.geometry("350x200")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        
+        # Center the dialog
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
+        
+        result = [None]
+        
+        # Main frame
+        main_frame = ttk.Frame(dialog, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Title
+        title_label = ttk.Label(main_frame, text="Set delay time:", font=("Arial", 12, "bold"))
+        title_label.pack(pady=(0, 15))
+        
+        # Time input frame
+        time_frame = ttk.Frame(main_frame)
+        time_frame.pack(pady=(0, 20))
+        
+        # Hours
+        hours_frame = ttk.Frame(time_frame)
+        hours_frame.pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(hours_frame, text="Hours:").pack()
+        hours_var = tk.StringVar(value="0")
+        hours_spinbox = ttk.Spinbox(hours_frame, from_=0, to=23, width=5, textvariable=hours_var)
+        hours_spinbox.pack()
+        
+        # Minutes
+        minutes_frame = ttk.Frame(time_frame)
+        minutes_frame.pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(minutes_frame, text="Minutes:").pack()
+        minutes_var = tk.StringVar(value="0")
+        minutes_spinbox = ttk.Spinbox(minutes_frame, from_=0, to=59, width=5, textvariable=minutes_var)
+        minutes_spinbox.pack()
+        
+        # Seconds
+        seconds_frame = ttk.Frame(time_frame)
+        seconds_frame.pack(side=tk.LEFT)
+        ttk.Label(seconds_frame, text="Seconds:").pack()
+        seconds_var = tk.StringVar(value="30")
+        seconds_spinbox = ttk.Spinbox(seconds_frame, from_=0, to=59, width=5, textvariable=seconds_var)
+        seconds_spinbox.pack()
+        
+        # Buttons frame
+        buttons_frame = ttk.Frame(main_frame)
+        buttons_frame.pack(fill=tk.X)
+        
+        def on_ok():
+            try:
+                hours = int(hours_var.get())
+                minutes = int(minutes_var.get())
+                seconds = int(seconds_var.get())
+                
+                total_seconds = hours * 3600 + minutes * 60 + seconds
+                result[0] = total_seconds
+                dialog.destroy()
+            except ValueError:
+                messagebox.showerror("Invalid Input", "Please enter valid numbers for time values.")
+        
+        def on_cancel():
+            result[0] = None
+            dialog.destroy()
+        
+        ttk.Button(buttons_frame, text="Cancel", command=on_cancel).pack(side=tk.RIGHT, padx=(10, 0))
+        ttk.Button(buttons_frame, text="OK", command=on_ok).pack(side=tk.RIGHT)
+        
+        # Set focus to seconds spinbox
+        seconds_spinbox.focus()
+        
+        # Handle Enter key
+        dialog.bind('<Return>', lambda e: on_ok())
+        dialog.bind('<Escape>', lambda e: on_cancel())
+        
+        # Wait for dialog to close
+        dialog.wait_window()
+        
+        return result[0]
+    
+    def _format_time_duration(self, total_seconds):
+        """Format time duration in a user-friendly way."""
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        seconds = int(total_seconds % 60)
+        
+        parts = []
+        if hours > 0:
+            parts.append(f"{hours} hour{'s' if hours != 1 else ''}")
+        if minutes > 0:
+            parts.append(f"{minutes} minute{'s' if minutes != 1 else ''}")
+        if seconds > 0 or not parts:  # Always show seconds if it's the only unit or if there are no other parts
+            parts.append(f"{seconds} second{'s' if seconds != 1 else ''}")
+        
+        if len(parts) == 1:
+            return parts[0]
+        elif len(parts) == 2:
+            return f"{parts[0]} and {parts[1]}"
+        else:
+            return f"{', '.join(parts[:-1])}, and {parts[-1]}"
+     
     def execute_scheduled_start(self):
         """Execute the scheduled start of monitoring."""
         self.schedule_active = False
@@ -2301,6 +2479,327 @@ class KeyInputDialog:
         self.dialog.destroy()
 
     def get_action(self):
+        self.dialog.wait_window()
+        return self.result
+
+
+class EditTextActionDialog:
+    """Dialog for editing text input actions"""
+    def __init__(self, parent, current_text):
+        self.result = None
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Edit Text Action")
+        self.dialog.geometry("400x150")
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+        
+        self.current_text = current_text
+        self.setup_dialog()
+        
+        # Center dialog
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
+        self.dialog.geometry(f"+{x}+{y}")
+    
+    def setup_dialog(self):
+        main_frame = ttk.Frame(self.dialog, padding=10)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(main_frame, text="Text to type:").pack(anchor=tk.W, pady=(0, 5))
+        
+        self.text_var = tk.StringVar(value=self.current_text)
+        self.text_entry = ttk.Entry(main_frame, textvariable=self.text_var, width=50)
+        self.text_entry.pack(fill=tk.X, pady=5)
+        self.text_entry.focus_set()
+        self.text_entry.select_range(0, tk.END)
+        
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=10, side=tk.BOTTOM, anchor=tk.E)
+        ttk.Button(button_frame, text="OK", command=self.ok_clicked).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.cancel_clicked).pack(side=tk.LEFT, padx=5)
+    
+    def ok_clicked(self):
+        self.result = self.text_var.get()
+        self.dialog.destroy()
+    
+    def cancel_clicked(self):
+        self.dialog.destroy()
+    
+    def get_text(self):
+        self.dialog.wait_window()
+        return self.result
+
+
+class EditKeyActionDialog:
+    """Dialog for editing key press actions"""
+    def __init__(self, parent, current_key):
+        self.result = None
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Edit Key Action")
+        self.dialog.geometry("300x120")
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+        
+        self.current_key = current_key
+        self.setup_dialog()
+        
+        # Center dialog
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
+        self.dialog.geometry(f"+{x}+{y}")
+    
+    def setup_dialog(self):
+        main_frame = ttk.Frame(self.dialog, padding=10)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(main_frame, text="Key to press:").pack(anchor=tk.W, pady=(0, 5))
+        
+        self.key_var = tk.StringVar(value=self.current_key)
+        self.key_entry = ttk.Entry(main_frame, textvariable=self.key_var, width=30)
+        self.key_entry.pack(fill=tk.X, pady=5)
+        self.key_entry.focus_set()
+        self.key_entry.select_range(0, tk.END)
+        
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=10, side=tk.BOTTOM, anchor=tk.E)
+        ttk.Button(button_frame, text="OK", command=self.ok_clicked).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.cancel_clicked).pack(side=tk.LEFT, padx=5)
+    
+    def ok_clicked(self):
+        self.result = self.key_var.get()
+        self.dialog.destroy()
+    
+    def cancel_clicked(self):
+        self.dialog.destroy()
+    
+    def get_key(self):
+        self.dialog.wait_window()
+        return self.result
+
+
+class EditKeyComboActionDialog:
+    """Dialog for editing key combination actions"""
+    def __init__(self, parent, current_keys):
+        self.result = None
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Edit Key Combination Action")
+        self.dialog.geometry("400x120")
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+        
+        self.current_keys = current_keys
+        self.setup_dialog()
+        
+        # Center dialog
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
+        self.dialog.geometry(f"+{x}+{y}")
+    
+    def setup_dialog(self):
+        main_frame = ttk.Frame(self.dialog, padding=10)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(main_frame, text="Key combination (comma-separated):").pack(anchor=tk.W, pady=(0, 5))
+        
+        self.keys_var = tk.StringVar(value=', '.join(self.current_keys))
+        self.keys_entry = ttk.Entry(main_frame, textvariable=self.keys_var, width=40)
+        self.keys_entry.pack(fill=tk.X, pady=5)
+        self.keys_entry.focus_set()
+        self.keys_entry.select_range(0, tk.END)
+        
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=10, side=tk.BOTTOM, anchor=tk.E)
+        ttk.Button(button_frame, text="OK", command=self.ok_clicked).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.cancel_clicked).pack(side=tk.LEFT, padx=5)
+    
+    def ok_clicked(self):
+        keys_str = self.keys_var.get()
+        self.result = [k.strip() for k in keys_str.split(',') if k.strip()]
+        self.dialog.destroy()
+    
+    def cancel_clicked(self):
+        self.dialog.destroy()
+    
+    def get_keys(self):
+        self.dialog.wait_window()
+        return self.result
+
+
+class EditWaitActionDialog:
+    """Dialog for editing wait actions"""
+    def __init__(self, parent, current_duration):
+        self.result = None
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Edit Wait Action")
+        self.dialog.geometry("300x120")
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+        
+        self.current_duration = current_duration
+        self.setup_dialog()
+        
+        # Center dialog
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
+        self.dialog.geometry(f"+{x}+{y}")
+    
+    def setup_dialog(self):
+        main_frame = ttk.Frame(self.dialog, padding=10)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(main_frame, text="Duration (seconds):").pack(anchor=tk.W, pady=(0, 5))
+        
+        self.duration_var = tk.DoubleVar(value=self.current_duration)
+        self.duration_entry = ttk.Entry(main_frame, textvariable=self.duration_var, width=20)
+        self.duration_entry.pack(fill=tk.X, pady=5)
+        self.duration_entry.focus_set()
+        self.duration_entry.select_range(0, tk.END)
+        
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=10, side=tk.BOTTOM, anchor=tk.E)
+        ttk.Button(button_frame, text="OK", command=self.ok_clicked).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.cancel_clicked).pack(side=tk.LEFT, padx=5)
+    
+    def ok_clicked(self):
+        try:
+            self.result = self.duration_var.get()
+            if self.result <= 0:
+                messagebox.showerror("Error", "Duration must be greater than 0", parent=self.dialog)
+                return
+            self.dialog.destroy()
+        except tk.TclError:
+            messagebox.showerror("Error", "Please enter a valid number", parent=self.dialog)
+    
+    def cancel_clicked(self):
+        self.dialog.destroy()
+    
+    def get_duration(self):
+        self.dialog.wait_window()
+        return self.result
+
+
+class EditClickActionDialog:
+    """Dialog for editing click actions"""
+    def __init__(self, parent, action_type, current_x, current_y):
+        self.result = None
+        self.dialog = tk.Toplevel(parent)
+        self.action_type = action_type
+        
+        if action_type == ActionType.CLICK:
+            title = "Edit Click Action"
+        elif action_type == ActionType.DOUBLE_CLICK:
+            title = "Edit Double-Click Action"
+        elif action_type == ActionType.RIGHT_CLICK:
+            title = "Edit Right-Click Action"
+        else:
+            title = "Edit Click Action"
+            
+        self.dialog.title(title)
+        self.dialog.geometry("300x150")
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+        
+        self.current_x = current_x
+        self.current_y = current_y
+        self.setup_dialog()
+        
+        # Center dialog
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
+        self.dialog.geometry(f"+{x}+{y}")
+    
+    def setup_dialog(self):
+        main_frame = ttk.Frame(self.dialog, padding=10)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(main_frame, text="X coordinate:").grid(row=0, column=0, sticky=tk.W, pady=5)
+        self.x_var = tk.IntVar(value=self.current_x)
+        ttk.Entry(main_frame, textvariable=self.x_var, width=15).grid(row=0, column=1, padx=5, pady=5)
+        
+        ttk.Label(main_frame, text="Y coordinate:").grid(row=1, column=0, sticky=tk.W, pady=5)
+        self.y_var = tk.IntVar(value=self.current_y)
+        ttk.Entry(main_frame, textvariable=self.y_var, width=15).grid(row=1, column=1, padx=5, pady=5)
+        
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.grid(row=2, column=0, columnspan=2, pady=10, sticky=tk.E)
+        ttk.Button(button_frame, text="OK", command=self.ok_clicked).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.cancel_clicked).pack(side=tk.LEFT, padx=5)
+    
+    def ok_clicked(self):
+        try:
+            x = self.x_var.get()
+            y = self.y_var.get()
+            self.result = (x, y)
+            self.dialog.destroy()
+        except tk.TclError:
+            messagebox.showerror("Error", "Please enter valid coordinates", parent=self.dialog)
+    
+    def cancel_clicked(self):
+        self.dialog.destroy()
+    
+    def get_coordinates(self):
+        self.dialog.wait_window()
+        return self.result
+
+
+class EditScrollActionDialog:
+    """Dialog for editing scroll actions"""
+    def __init__(self, parent, current_clicks):
+        self.result = None
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("Edit Scroll Action")
+        self.dialog.geometry("300x120")
+        self.dialog.transient(parent)
+        self.dialog.grab_set()
+        
+        self.current_clicks = current_clicks
+        self.setup_dialog()
+        
+        # Center dialog
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
+        self.dialog.geometry(f"+{x}+{y}")
+    
+    def setup_dialog(self):
+        main_frame = ttk.Frame(self.dialog, padding=10)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        ttk.Label(main_frame, text="Number of clicks:").pack(anchor=tk.W, pady=(0, 5))
+        
+        self.clicks_var = tk.IntVar(value=self.current_clicks)
+        self.clicks_entry = ttk.Entry(main_frame, textvariable=self.clicks_var, width=20)
+        self.clicks_entry.pack(fill=tk.X, pady=5)
+        self.clicks_entry.focus_set()
+        self.clicks_entry.select_range(0, tk.END)
+        
+        # Buttons
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(pady=10, side=tk.BOTTOM, anchor=tk.E)
+        ttk.Button(button_frame, text="OK", command=self.ok_clicked).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="Cancel", command=self.cancel_clicked).pack(side=tk.LEFT, padx=5)
+    
+    def ok_clicked(self):
+        try:
+            self.result = self.clicks_var.get()
+            self.dialog.destroy()
+        except tk.TclError:
+            messagebox.showerror("Error", "Please enter a valid number", parent=self.dialog)
+    
+    def cancel_clicked(self):
+        self.dialog.destroy()
+    
+    def get_clicks(self):
         self.dialog.wait_window()
         return self.result
 

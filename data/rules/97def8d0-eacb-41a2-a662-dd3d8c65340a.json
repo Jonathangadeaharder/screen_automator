@@ -19,7 +19,7 @@
       }
     }
   ],
-  "enabled": false,
+  "enabled": true,
   "description": "",
   "created_ts": 1749817488,
   "priority": 100,
@@ -38,5 +38,5 @@
   "cluster_group": "",
   "disable_after_executions": 0,
   "disable_on_image": "C:/Users/jogah/Pictures/Screenshots/Screenshot 2025-06-20 162614.png",
-  "execution_count": 0
+  "execution_count": 28
 }
