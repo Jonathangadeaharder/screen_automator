@@ -1,127 +1,66 @@
-# Framework Examples
+# Examples
 
-This directory contains examples demonstrating the new framework features added to screen_automator.
+Complete examples using the **modern Screen Automator API**.
 
-## What's New
+## Modern API Usage
 
-Screen Automator has been enhanced with professional-grade framework features:
+See `modern_api_usage.py` for comprehensive examples.
 
-1. **Auto-Waiting** - Eliminate flaky tests caused by `time.sleep()`
-2. **Expectations API** - Auto-retrying assertions that adapt to environment speed
-3. **Page Object Model** - Maintainable, reusable UI abstractions
-4. **Data-Driven Testing** - Multiply test coverage with external data files
-
-## Running the Examples
-
-### 1. Install Dependencies
+### Quick Start
 
 ```bash
+# Install dependencies
 poetry install --with dev
+
+# Run examples
+python examples/modern_api_usage.py
 ```
 
-### 2. Create Example Data Files
+## Modern API (Recommended)
 
-```bash
-python examples/framework_demo.py
-```
-
-This creates example CSV and JSON files in the `examples/` directory.
-
-### 3. Review the Code
-
-Open `framework_demo.py` to see complete examples of:
-- Auto-waiting for elements
-- Robust expectations
-- Page object patterns
-- Data-driven test loops
-
-## Quick Examples
-
-### Auto-Waiting (No more time.sleep!)
+All examples use the modern API:
 
 ```python
-from src.actionability import SmartAutomator
+from src.modern_api import create_framework
 
-smart = SmartAutomator(automator)
-smart.click_image("button.png")  # Auto-waits until button appears!
+# Create framework instance
+framework = create_framework(timeout=10000)
+
+# Click with auto-waiting
+framework.click_image("button.png")
+
+# Robust expectations
+framework.expect_image("success.png", timeout=5000)
+framework.expect_no_image("loading.png")
+
+# Wait for elements
+location = framework.wait_for_image("dialog.png")
+
+# Start monitoring
+framework.start_monitoring()
 ```
 
-### Expectations (Auto-retrying assertions)
+## What's Included
 
-```python
-from src.expectations import expect
+The modern API includes all framework features:
+- 🚀 **Auto-waiting** - No more `time.sleep()`
+- ✅ **Expectations** - Auto-retry assertions
+- 📦 **Page Objects** - Available via framework
+- 📊 **Data-driven** - CSV/JSON/XML support
+- 🔄 **Monitoring** - Rule-based automation
 
-# Waits up to 5 seconds for button to appear
-expect(automator).to_have_image("button.png", timeout=5000)
+## Example Files
 
-# Waits for loading to disappear
-expect(automator).not_to_have_image("loading.png")
-```
+- `modern_api_usage.py` - Complete API examples (6 scenarios)
+- `login_cases.csv` - Sample CSV test data
+- `config.json` - Sample environment config
 
-### Page Object Model (Maintainable tests)
+## Documentation
 
-```python
-from src.page_objects import BasePage, Element, image_locator
-
-class CalculatorWindow(BasePage):
-    def __init__(self, automator):
-        super().__init__(automator)
-        self.button_7 = Element(image_locator("calc_7.png"), automator)
-        self.button_plus = Element(image_locator("calc_plus.png"), automator)
-
-    def add_7_plus_number(self, num):
-        self.button_7.click()
-        self.button_plus.click()
-        # ...
-
-# Use in tests
-calc = CalculatorWindow(automator)
-calc.add_7_plus_number(3)
-```
-
-### Data-Driven Testing (Multiply test cases)
-
-```python
-from src.data_driven import DataProvider
-
-# One loop, many test cases
-for row in DataProvider("test_data/users.csv"):
-    username = row['username']
-    password = row['password']
-    # Run test with this data
-```
-
-## Full Documentation
-
-For complete documentation, see:
-
-- **[FRAMEWORK_GUIDE.md](../FRAMEWORK_GUIDE.md)** - Comprehensive user guide
-- **[IMPROVEMENT_BLUEPRINT_IMPLEMENTATION.md](../IMPROVEMENT_BLUEPRINT_IMPLEMENTATION.md)** - Implementation details
-
-## Example Data Files
-
-After running `framework_demo.py`, you'll have:
-
-- `login_cases.csv` - Example CSV test data
-- `config.json` - Example environment configuration
-
-You can use these as templates for your own test data files.
-
-## Next Steps
-
-1. Read `FRAMEWORK_GUIDE.md` for detailed explanations
-2. Review `framework_demo.py` for code examples
-3. Try the features in your own automation scripts
-4. Create page objects for your UI
-5. Set up data-driven tests for your scenarios
-
-## Support
-
-For questions or issues:
-- Check the [Framework Guide](../FRAMEWORK_GUIDE.md)
-- Review the source code (all modules have detailed docstrings)
-- Open an issue on GitHub
+- [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) - API reference
+- [FRAMEWORK_GUIDE.md](../FRAMEWORK_GUIDE.md) - Complete guide
+- [MIGRATION_GUIDE.md](../MIGRATION_GUIDE.md) - Migration help
 
 ---
 
-**Happy automating! 🚀**
+**Use the modern API for all new code!** 🚀
