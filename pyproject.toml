@@ -1,0 +1,207 @@
+[tool.poetry]
+name = "screen-automator"
+version = "0.1.0"
+description = "A robust, cross-platform GUI automation framework combining image-based and property-based automation"
+authors = ["Screen Automator Contributors"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/Jonathangadeaharder/screen_automator"
+repository = "https://github.com/Jonathangadeaharder/screen_automator"
+keywords = ["automation", "gui", "testing", "opencv", "pyautogui"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+]
+packages = [
+    { include = "src" },
+    { include = "gui" },
+    { include = "gui_components" },
+    { include = "core" },
+    { include = "utils" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+opencv-python = ">=4.8.0"
+pillow = ">=10.0.0"
+pyautogui = ">=0.9.54"
+click = ">=8.1.0"
+numpy = ">=1.24.0"
+pynput = ">=1.7.6"
+psutil = ">=5.9.0"
+screeninfo = ">=0.8.1"
+pywin32 = {version = ">=306", markers = "sys_platform == 'win32'"}
+ttkbootstrap = ">=1.10.0"
+
+[tool.poetry.group.dev.dependencies]
+# Testing
+pytest = ">=7.4"
+pytest-mock = ">=3.10"
+pytest-cov = ">=4.1.0"
+pytest-timeout = ">=2.1.0"
+
+# Code Quality - Formatters
+black = ">=23.0.0"
+isort = ">=5.12.0"
+
+# Code Quality - Linters
+flake8 = ">=6.0.0"
+flake8-docstrings = ">=1.7.0"
+flake8-bugbear = ">=23.0.0"
+flake8-comprehensions = ">=3.14.0"
+mypy = ">=1.5.0"
+
+# Security
+bandit = ">=1.7.5"
+safety = ">=2.3.0"
+
+# Documentation
+sphinx = ">=7.0.0"
+sphinx-rtd-theme = ">=1.3.0"
+
+# Pre-commit
+pre-commit = ">=3.3.0"
+
+# Type stubs
+types-pillow = ">=10.0.0"
+types-psutil = ">=5.9.0"
+
+[tool.poetry.scripts]
+screen-automator = "cli:main"
+screen-automator-gui = "gui:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Black configuration
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | htmlcov
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+skip_gitignore = true
+skip = [".venv", "venv", ".git", "__pycache__", "build", "dist"]
+
+# pytest configuration
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--cov=src",
+    "--cov=gui",
+    "--cov=gui_components",
+    "--cov=core",
+    "--cov=utils",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--cov-fail-under=70",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "gui: GUI tests",
+    "cli: CLI tests",
+    "core: Core functionality tests",
+    "slow: Slow running tests",
+    "network: Tests requiring network access",
+]
+timeout = 300
+timeout_method = "thread"
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src", "gui", "gui_components", "core", "utils"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# mypy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Gradually enable this
+disallow_any_unimported = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+check_untyped_defs = true
+strict_equality = true
+ignore_missing_imports = true  # For third-party packages without stubs
+
+[[tool.mypy.overrides]]
+module = [
+    "cv2.*",
+    "pyautogui.*",
+    "pynput.*",
+    "screeninfo.*",
+    "ttkbootstrap.*",
+]
+ignore_missing_imports = true
+
+# Bandit configuration
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "venv"]
+skips = ["B101"]  # Skip assert_used (common in tests)

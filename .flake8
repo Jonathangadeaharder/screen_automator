@@ -1,0 +1,68 @@
+[flake8]
+# Match black's line length
+max-line-length = 100
+
+# Complexity
+max-complexity = 10
+
+# Exclude patterns
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    htmlcov,
+    .pytest_cache,
+    .mypy_cache,
+    .tox
+
+# Ignore specific error codes
+ignore =
+    # E203: whitespace before ':' (conflicts with black)
+    E203,
+    # E501: line too long (handled by black)
+    E501,
+    # W503: line break before binary operator (conflicts with black)
+    W503,
+    # D100: Missing docstring in public module (too strict initially)
+    D100,
+    # D104: Missing docstring in public package
+    D104,
+
+# Per-file ignores
+per-file-ignores =
+    # Tests don't need docstrings
+    tests/*:D101,D102,D103
+    # __init__.py files don't need docstrings
+    __init__.py:D104,F401
+
+# Enable specific checks
+select =
+    # pycodestyle errors
+    E,
+    # pycodestyle warnings
+    W,
+    # pyflakes
+    F,
+    # flake8-bugbear
+    B,
+    # flake8-comprehensions
+    C4,
+    # flake8-docstrings
+    D,
+
+# Docstring conventions
+docstring-convention = google
+
+# Show source code for errors
+show-source = True
+
+# Show statistics
+statistics = True
+
+# Count errors
+count = True

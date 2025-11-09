@@ -1,0 +1,85 @@
+# Pre-commit hooks for code quality
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # General file cleanup
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # Black - code formatter
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3
+        args: ['--line-length=100']
+
+  # isort - import sorter
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile', 'black', '--line-length', '100']
+
+  # flake8 - linter
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-docstrings
+          - flake8-bugbear
+          - flake8-comprehensions
+        args: ['--config=.flake8']
+
+  # mypy - type checker
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-pillow
+          - types-psutil
+        args: ['--config-file=pyproject.toml']
+        # Only check new/modified files to avoid overwhelming initial setup
+        pass_filenames: true
+
+  # bandit - security linter
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ['bandit[toml]']
+
+  # Safety - dependency vulnerability checker
+  # Note: Commented out by default as it requires API access
+  # Uncomment to enable in your local environment
+  # - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+  #   rev: v1.3.3
+  #   hooks:
+  #     - id: python-safety-dependencies-check
+
+# Configuration
+default_language_version:
+  python: python3
+
+# Fail fast on first error
+fail_fast: false
+
+# Minimum pre-commit version
+minimum_pre_commit_version: '3.0.0'
