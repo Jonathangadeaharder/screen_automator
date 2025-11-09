@@ -14,7 +14,39 @@ A Python application for automating screen interactions based on image detection
 - **Keystroke recording**: Record keyboard input
 - **Rule management**: Save, load, enable/disable rules
 
-## 🚀 New: Professional Framework Features
+## ⚡ Quick Start - Modern API (Recommended)
+
+The modern framework API is the **recommended way** to use Screen Automator:
+
+```python
+from src.modern_api import create_framework
+
+# Create framework instance
+framework = create_framework(timeout=10000)
+
+# Click image with auto-waiting (no time.sleep needed!)
+framework.click_image("button.png")
+
+# Robust assertions that auto-retry
+framework.expect_image("success.png", timeout=5000)
+framework.expect_no_image("loading.png")
+
+# Wait for elements to appear
+location = framework.wait_for_image("dialog.png")
+
+# Start rule-based monitoring
+framework.start_monitoring()
+```
+
+**Why use the modern API?**
+- ✅ Auto-waiting eliminates flaky tests
+- ✅ No more `time.sleep()` - intelligent UI waiting
+- ✅ Robust expectations adapt to system speed
+- ✅ Clean, simple interface
+
+See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for complete API reference.
+
+## 🚀 Professional Framework Features
 
 Screen Automator now includes professional-grade framework features that dramatically improve reliability, maintainability, and productivity:
 

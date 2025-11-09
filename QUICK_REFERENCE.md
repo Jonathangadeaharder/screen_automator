@@ -1,6 +1,38 @@
 # Screen Automator Framework - Quick Reference
 
-One-page cheat sheet for the new framework features.
+One-page cheat sheet for the framework. **Use the Modern API for new code.**
+
+## Modern API (Recommended)
+
+```python
+from src.modern_api import create_framework
+
+# Create framework (replaces old ScreenAutomator())
+framework = create_framework(timeout=10000)
+
+# Click with auto-wait
+framework.click_image("button.png")
+
+# Robust expectations
+framework.expect_image("success.png", timeout=5000)
+framework.expect_no_image("loading.png")
+
+# Wait for elements
+location = framework.wait_for_image("dialog.png")
+framework.wait_for_image_to_disappear("loading.png")
+
+# Rule monitoring
+framework.start_monitoring()
+framework.stop_monitoring()
+```
+
+**Why Modern API?**
+- ✅ Simple, clean interface
+- ✅ Auto-waiting built-in
+- ✅ All framework features included
+- ✅ Recommended for all new code
+
+See `examples/modern_api_usage.py` for complete examples.
 
 ## Setup
 

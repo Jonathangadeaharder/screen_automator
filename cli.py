@@ -8,7 +8,8 @@ import json
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from src.automator import ScreenAutomator
+# Modern API (recommended)
+from src.modern_api import create_framework
 from src.context_automator import ContextAwareAutomator
 from src.window_manager import WindowManager
 from src.action_executor import (
@@ -21,8 +22,10 @@ from src.action_executor import (
 @click.group()
 @click.pass_context
 def cli(ctx):
-    """Screen Automator - Automate actions based on screen images"""
+    """Screen Automator - Modern Framework Edition"""
     ctx.ensure_object(dict)
+    # Use ContextAwareAutomator for window management features
+    # (framework features are available via the automator's components)
     ctx.obj['automator'] = ContextAwareAutomator()
 
 
