@@ -14,12 +14,102 @@ A Python application for automating screen interactions based on image detection
 - **Keystroke recording**: Record keyboard input
 - **Rule management**: Save, load, enable/disable rules
 
+## 🚀 New: Professional Framework Features
+
+Screen Automator now includes professional-grade framework features that dramatically improve reliability, maintainability, and productivity:
+
+### Auto-Waiting & Actionability
+- **Eliminate flaky tests**: No more `time.sleep()` - auto-wait for elements to appear
+- **Stability checks**: Wait for elements to stop animating before clicking
+- **Smart automator**: Automatic waiting on all actions
+
+```python
+from src.actionability import SmartAutomator
+
+smart = SmartAutomator(automator)
+smart.click_image("button.png")  # Auto-waits until button appears!
+```
+
+### Expectations API
+- **Auto-retrying assertions**: Playwright-style expectations that adapt to environment speed
+- **Robust verification**: Eliminate race conditions in test assertions
+- **Clear error messages**: Shows expected vs actual values
+
+```python
+from src.expectations import expect
+
+expect(automator).to_have_image("button.png", timeout=5000)
+expect(automator).not_to_have_image("loading.png")
+```
+
+### Page Object Model (POM)
+- **Maintainable tests**: Encapsulate UI elements and interactions
+- **Reduce duplication**: Reuse page objects across all tests
+- **Easy updates**: UI changes only require updating one file
+
+```python
+from src.page_objects import BasePage, Element, image_locator
+
+class LoginPage(BasePage):
+    def __init__(self, automator):
+        super().__init__(automator)
+        self.username = Element(image_locator("username.png"), automator)
+
+    def login(self, username, password):
+        self.username.type_text(username)
+        # ...
+```
+
+### Data-Driven Testing
+- **Multiply test coverage**: One test script, hundreds of variations
+- **External data files**: Load test data from JSON, CSV, XML
+- **Environment configs**: Easy switching between dev/staging/prod
+
+```python
+from src.data_driven import DataProvider
+
+for row in DataProvider("test_data.csv"):
+    test_login(row['username'], row['password'])
+```
+
+### Code Quality & CI/CD
+- **Automated formatting**: Black, isort
+- **Linting**: Flake8, mypy
+- **Security scanning**: Bandit, Safety
+- **GitHub Actions**: Multi-platform testing on every push
+- **Pre-commit hooks**: Quality checks before every commit
+
+**📖 Full Documentation:** See [FRAMEWORK_GUIDE.md](FRAMEWORK_GUIDE.md) for complete guide with examples.
+
+**🎯 Quick Start:** Check out [examples/](examples/) for working code examples.
+
 ## Installation
+
+### Standard Installation
 
 1. Clone or download the project
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+### Development Installation (Recommended)
+
+For the full framework experience with code quality tools:
+
+1. Install Poetry (if not already installed):
+```bash
+curl -sSL https://install.python-poetry.org | python3 -
+```
+
+2. Install all dependencies including dev tools:
+```bash
+poetry install --with dev
+```
+
+3. Install pre-commit hooks:
+```bash
+poetry run pre-commit install
 ```
 
 ## Usage

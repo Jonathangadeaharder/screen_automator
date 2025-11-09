@@ -1,0 +1,4 @@
+username,password,expected_result
+user1,pass1,success
+admin,admin123,success
+invalid,wrong,error

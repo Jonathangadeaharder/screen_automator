@@ -1,0 +1,16 @@
+{
+  "dev": {
+    "app_path": "C:/Program Files/MyApp/dev/app.exe",
+    "timeout": 5000,
+    "api": {
+      "url": "https://dev-api.example.com"
+    }
+  },
+  "prod": {
+    "app_path": "C:/Program Files/MyApp/app.exe",
+    "timeout": 10000,
+    "api": {
+      "url": "https://api.example.com"
+    }
+  }
+}
