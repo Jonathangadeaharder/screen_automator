@@ -56,6 +56,8 @@ This release represents a major refactoring focused on simplicity, reliability, 
   - Black formatting (line length: 100)
   - isort for import sorting
   - Flake8 for linting
+  - **Ruff** - Fast Python linter (304 auto-fixes applied)
+  - **Pylint** - Comprehensive code analysis (9.16/10 score on new modules)
   - mypy for type checking
   - Bandit for security scanning
   - Safety for dependency security
