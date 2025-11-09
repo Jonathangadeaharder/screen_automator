@@ -13,14 +13,15 @@ Based on the comprehensive improvement blueprint for screen_automator.
 import csv
 import json
 import xml.etree.ElementTree as ET
+from dataclasses import asdict, dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Union
-from dataclasses import dataclass, asdict
-from enum import Enum
 
 
 class DataFormat(Enum):
     """Supported data file formats."""
+
     JSON = "json"
     CSV = "csv"
     XML = "xml"
@@ -33,6 +34,7 @@ class TestDataRow:
 
     This provides a consistent interface regardless of source format.
     """
+
     data: Dict[str, Any]
     row_number: int
     source_file: str
@@ -83,11 +85,11 @@ class DataProvider:
     def _detect_format(self) -> DataFormat:
         """Auto-detect format from file extension."""
         ext = self.file_path.suffix.lower()
-        if ext == '.json':
+        if ext == ".json":
             return DataFormat.JSON
-        elif ext == '.csv':
+        elif ext == ".csv":
             return DataFormat.CSV
-        elif ext == '.xml':
+        elif ext == ".xml":
             return DataFormat.XML
         else:
             raise ValueError(f"Unsupported file extension: {ext}")
@@ -102,11 +104,7 @@ class DataProvider:
         if self._data is not None:
             # Already loaded, return cached data
             return [
-                TestDataRow(
-                    data=row,
-                    row_number=i,
-                    source_file=str(self.file_path)
-                )
+                TestDataRow(data=row, row_number=i, source_file=str(self.file_path))
                 for i, row in enumerate(self._data)
             ]
 
@@ -118,17 +116,13 @@ class DataProvider:
             self._data = self._load_xml()
 
         return [
-            TestDataRow(
-                data=row,
-                row_number=i,
-                source_file=str(self.file_path)
-            )
+            TestDataRow(data=row, row_number=i, source_file=str(self.file_path))
             for i, row in enumerate(self._data)
         ]
 
     def _load_json(self) -> List[Dict[str, Any]]:
         """Load JSON data file."""
-        with open(self.file_path, 'r', encoding='utf-8') as f:
+        with open(self.file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         # Support both array of objects and single object
@@ -142,7 +136,7 @@ class DataProvider:
 
     def _load_csv(self) -> List[Dict[str, Any]]:
         """Load CSV data file."""
-        with open(self.file_path, 'r', encoding='utf-8') as f:
+        with open(self.file_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             return list(reader)
 
@@ -222,10 +216,7 @@ class DataDrivenTest:
     """
 
     def __init__(
-        self,
-        data_file: Union[str, Path],
-        automator: Any,
-        format: Optional[DataFormat] = None
+        self, data_file: Union[str, Path], automator: Any, format: Optional[DataFormat] = None
     ):
         """
         Initialize data-driven test.
@@ -300,32 +291,25 @@ class DataDrivenTest:
                 'errors': List[Dict]
             }
         """
-        results = {
-            'total': 0,
-            'passed': 0,
-            'failed': 0,
-            'errors': []
-        }
+        results = {"total": 0, "passed": 0, "failed": 0, "errors": []}
 
         self.setup()
 
         try:
             for row in self.data_provider:
-                results['total'] += 1
+                results["total"] += 1
 
                 try:
                     self.setup_each(row)
                     self.run_test(row)
                     self.teardown_each(row)
-                    results['passed'] += 1
+                    results["passed"] += 1
 
                 except Exception as e:
-                    results['failed'] += 1
-                    results['errors'].append({
-                        'row': row.row_number,
-                        'data': row.data,
-                        'error': str(e)
-                    })
+                    results["failed"] += 1
+                    results["errors"].append(
+                        {"row": row.row_number, "data": row.data, "error": str(e)}
+                    )
 
         finally:
             self.teardown()
@@ -359,10 +343,11 @@ def parametrize(data_file: Union[str, Path], format: Optional[DataFormat] = None
             for row in provider:
                 try:
                     result = test_func(row, *args, **kwargs)
-                    results.append(('pass', row.row_number, result))
+                    results.append(("pass", row.row_number, result))
                 except Exception as e:
-                    results.append(('fail', row.row_number, str(e)))
+                    results.append(("fail", row.row_number, str(e)))
             return results
+
         return wrapper
 
     return decorator
@@ -396,11 +381,7 @@ class ConfigManager:
         timeout = config.get("timeout", default=30000)
     """
 
-    def __init__(
-        self,
-        config_file: Union[str, Path],
-        environment: Optional[str] = None
-    ):
+    def __init__(self, config_file: Union[str, Path], environment: Optional[str] = None):
         """
         Initialize config manager.
 
@@ -417,7 +398,7 @@ class ConfigManager:
         if not self.config_file.exists():
             raise FileNotFoundError(f"Config file not found: {self.config_file}")
 
-        with open(self.config_file, 'r', encoding='utf-8') as f:
+        with open(self.config_file, "r", encoding="utf-8") as f:
             config = json.load(f)
 
         # If environment specified, look for environment-specific overrides
@@ -442,7 +423,7 @@ class ConfigManager:
             Configuration value or default
         """
         # Support dot notation for nested configs
-        keys = key.split('.')
+        keys = key.split(".")
         value = self._config
 
         for k in keys:

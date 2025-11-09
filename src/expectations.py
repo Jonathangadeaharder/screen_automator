@@ -14,23 +14,26 @@ Based on the comprehensive improvement blueprint for screen_automator.
 """
 
 import time
-from typing import Any, Callable, Optional, Tuple
 from dataclasses import dataclass
+from typing import Any, Callable, Optional, Tuple
 
 
 class ExpectationError(AssertionError):
     """Raised when an expectation fails after retrying."""
+
     pass
 
 
 class ExpectationTimeoutError(ExpectationError):
     """Raised when an expectation times out."""
+
     pass
 
 
 @dataclass
 class ExpectationResult:
     """Result of an expectation check."""
+
     passed: bool
     message: str
     actual: Any = None
@@ -59,9 +62,7 @@ class Expectation:
         self.poll_interval = poll_interval
 
     def _retry_until_true(
-        self,
-        condition: Callable[[], ExpectationResult],
-        expectation_name: str
+        self, condition: Callable[[], ExpectationResult], expectation_name: str
     ) -> ExpectationResult:
         """
         Retry a condition until it passes or timeout is reached.
@@ -109,7 +110,7 @@ class ImageExpectation(Expectation):
         expect(automator).not_to_have_image("loading.png")
     """
 
-    def to_be_visible(self, image_path: str) -> 'ImageExpectation':
+    def to_be_visible(self, image_path: str) -> "ImageExpectation":
         """
         Expect an image to be visible on screen.
 
@@ -128,37 +129,37 @@ class ImageExpectation(Expectation):
         Example:
             expect(automator).to_be_visible("save_button.png")
         """
+
         def check():
             try:
                 location = self.subject.find_image(image_path)
                 if location:
                     return ExpectationResult(
-                        passed=True,
-                        message=f"Image '{image_path}' is visible at {location}"
+                        passed=True, message=f"Image '{image_path}' is visible at {location}"
                     )
                 else:
                     return ExpectationResult(
                         passed=False,
                         message=f"Image '{image_path}' is not visible",
                         expected="Image to be visible",
-                        actual="Image not found"
+                        actual="Image not found",
                     )
             except Exception as e:
                 return ExpectationResult(
                     passed=False,
                     message=f"Error checking image: {e}",
                     expected="Image to be visible",
-                    actual=f"Error: {e}"
+                    actual=f"Error: {e}",
                 )
 
         self._retry_until_true(check, f"image '{image_path}' to be visible")
         return self
 
-    def to_have_image(self, image_path: str) -> 'ImageExpectation':
+    def to_have_image(self, image_path: str) -> "ImageExpectation":
         """Alias for to_be_visible for better readability."""
         return self.to_be_visible(image_path)
 
-    def not_to_be_visible(self, image_path: str) -> 'ImageExpectation':
+    def not_to_be_visible(self, image_path: str) -> "ImageExpectation":
         """
         Expect an image to NOT be visible (to have disappeared).
 
@@ -166,42 +167,37 @@ class ImageExpectation(Expectation):
             # Wait for loading spinner to disappear
             expect(automator).not_to_be_visible("loading.png")
         """
+
         def check():
             try:
                 location = self.subject.find_image(image_path)
                 if location is None:
                     return ExpectationResult(
-                        passed=True,
-                        message=f"Image '{image_path}' is not visible (as expected)"
+                        passed=True, message=f"Image '{image_path}' is not visible (as expected)"
                     )
                 else:
                     return ExpectationResult(
                         passed=False,
                         message=f"Image '{image_path}' is still visible at {location}",
                         expected="Image not to be visible",
-                        actual=f"Image found at {location}"
+                        actual=f"Image found at {location}",
                     )
             except Exception:
                 # If find_image throws error, image is not visible
                 return ExpectationResult(
-                    passed=True,
-                    message=f"Image '{image_path}' is not visible (error finding it)"
+                    passed=True, message=f"Image '{image_path}' is not visible (error finding it)"
                 )
 
         self._retry_until_true(check, f"image '{image_path}' not to be visible")
         return self
 
-    def not_to_have_image(self, image_path: str) -> 'ImageExpectation':
+    def not_to_have_image(self, image_path: str) -> "ImageExpectation":
         """Alias for not_to_be_visible."""
         return self.not_to_be_visible(image_path)
 
     def to_be_at_location(
-        self,
-        image_path: str,
-        x: int,
-        y: int,
-        tolerance: int = 10
-    ) -> 'ImageExpectation':
+        self, image_path: str, x: int, y: int, tolerance: int = 10
+    ) -> "ImageExpectation":
         """
         Expect image to be at specific location.
 
@@ -214,6 +210,7 @@ class ImageExpectation(Expectation):
         Returns:
             self for chaining
         """
+
         def check():
             try:
                 location = self.subject.find_image(image_path)
@@ -225,34 +222,31 @@ class ImageExpectation(Expectation):
                     if dx <= tolerance and dy <= tolerance:
                         return ExpectationResult(
                             passed=True,
-                            message=f"Image at expected location ({actual_x}, {actual_y})"
+                            message=f"Image at expected location ({actual_x}, {actual_y})",
                         )
                     else:
                         return ExpectationResult(
                             passed=False,
                             message=f"Image at wrong location",
                             expected=f"({x}, {y}) ±{tolerance}px",
-                            actual=f"({actual_x}, {actual_y})"
+                            actual=f"({actual_x}, {actual_y})",
                         )
                 else:
                     return ExpectationResult(
                         passed=False,
                         message=f"Image '{image_path}' not found",
                         expected=f"Image at ({x}, {y})",
-                        actual="Image not visible"
+                        actual="Image not visible",
                     )
             except Exception as e:
                 return ExpectationResult(
                     passed=False,
                     message=f"Error: {e}",
                     expected=f"Image at ({x}, {y})",
-                    actual=f"Error: {e}"
+                    actual=f"Error: {e}",
                 )
 
-        self._retry_until_true(
-            check,
-            f"image '{image_path}' to be at ({x}, {y})"
-        )
+        self._retry_until_true(check, f"image '{image_path}' to be at ({x}, {y})")
         return self
 
 
@@ -265,7 +259,7 @@ class WindowExpectation(Expectation):
         expect(window_manager).to_have_active_window("Notepad")
     """
 
-    def to_have_window(self, title: str, partial: bool = True) -> 'WindowExpectation':
+    def to_have_window(self, title: str, partial: bool = True) -> "WindowExpectation":
         """
         Expect a window with given title to exist.
 
@@ -276,35 +270,31 @@ class WindowExpectation(Expectation):
         Returns:
             self for chaining
         """
+
         def check():
             try:
                 windows = self.subject.get_windows()
                 for window in windows:
-                    window_title = getattr(window, 'title', str(window))
+                    window_title = getattr(window, "title", str(window))
                     if partial:
                         if title.lower() in window_title.lower():
                             return ExpectationResult(
-                                passed=True,
-                                message=f"Found window: '{window_title}'"
+                                passed=True, message=f"Found window: '{window_title}'"
                             )
                     else:
                         if title == window_title:
                             return ExpectationResult(
-                                passed=True,
-                                message=f"Found window: '{window_title}'"
+                                passed=True, message=f"Found window: '{window_title}'"
                             )
 
                 return ExpectationResult(
                     passed=False,
                     message=f"Window not found",
                     expected=f"Window with title '{title}'",
-                    actual=f"Available windows: {[getattr(w, 'title', str(w)) for w in windows]}"
+                    actual=f"Available windows: {[getattr(w, 'title', str(w)) for w in windows]}",
                 )
             except Exception as e:
-                return ExpectationResult(
-                    passed=False,
-                    message=f"Error checking windows: {e}"
-                )
+                return ExpectationResult(passed=False, message=f"Error checking windows: {e}")
 
         self._retry_until_true(check, f"window '{title}' to exist")
         return self
@@ -319,8 +309,9 @@ class StateExpectation(Expectation):
         expect(lambda: counter.value).to_be_greater_than(0)
     """
 
-    def to_be(self, expected: Any) -> 'StateExpectation':
+    def to_be(self, expected: Any) -> "StateExpectation":
         """Expect subject to equal expected value."""
+
         def check():
             actual = self.subject() if callable(self.subject) else self.subject
             passed = actual == expected
@@ -328,14 +319,15 @@ class StateExpectation(Expectation):
                 passed=passed,
                 message=f"Value {'matches' if passed else 'does not match'} expected",
                 expected=expected,
-                actual=actual
+                actual=actual,
             )
 
         self._retry_until_true(check, f"value to be {expected}")
         return self
 
-    def to_be_truthy(self) -> 'StateExpectation':
+    def to_be_truthy(self) -> "StateExpectation":
         """Expect subject to be truthy."""
+
         def check():
             actual = self.subject() if callable(self.subject) else self.subject
             passed = bool(actual)
@@ -343,14 +335,15 @@ class StateExpectation(Expectation):
                 passed=passed,
                 message=f"Value is {'truthy' if passed else 'falsy'}",
                 expected="Truthy value",
-                actual=actual
+                actual=actual,
             )
 
         self._retry_until_true(check, "value to be truthy")
         return self
 
-    def to_be_greater_than(self, threshold: float) -> 'StateExpectation':
+    def to_be_greater_than(self, threshold: float) -> "StateExpectation":
         """Expect subject to be greater than threshold."""
+
         def check():
             actual = self.subject() if callable(self.subject) else self.subject
             passed = actual > threshold
@@ -358,7 +351,7 @@ class StateExpectation(Expectation):
                 passed=passed,
                 message=f"Value is {'>' if passed else '<='} threshold",
                 expected=f"> {threshold}",
-                actual=actual
+                actual=actual,
             )
 
         self._retry_until_true(check, f"value to be > {threshold}")
@@ -391,9 +384,9 @@ def expect(subject: Any, timeout: int = 5000) -> Expectation:
         expect(lambda: counter.value).to_be_greater_than(0)
     """
     # Determine appropriate expectation type based on subject
-    if hasattr(subject, 'find_image'):
+    if hasattr(subject, "find_image"):
         return ImageExpectation(subject, timeout=timeout)
-    elif hasattr(subject, 'get_windows'):
+    elif hasattr(subject, "get_windows"):
         return WindowExpectation(subject, timeout=timeout)
     else:
         return StateExpectation(subject, timeout=timeout)
@@ -401,9 +394,7 @@ def expect(subject: Any, timeout: int = 5000) -> Expectation:
 
 # Convenience function for quick checks
 def wait_for(
-    condition: Callable[[], bool],
-    timeout: int = 5000,
-    error_message: str = "Condition not met"
+    condition: Callable[[], bool], timeout: int = 5000, error_message: str = "Condition not met"
 ):
     """
     Wait for a condition to become true.
@@ -432,6 +423,4 @@ def wait_for(
         time.sleep(0.1)
 
     elapsed = (time.time() - start_time) * 1000
-    raise ExpectationTimeoutError(
-        f"{error_message} (waited {elapsed:.0f}ms)"
-    )
+    raise ExpectationTimeoutError(f"{error_message} (waited {elapsed:.0f}ms)")

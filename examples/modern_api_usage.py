@@ -14,11 +14,11 @@ The modern API provides:
 Run: python examples/modern_api_usage.py
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modern_api import create_framework
 from src.rule_manager import Rule
@@ -187,10 +187,7 @@ def example_5_configuration():
     print("=" * 70)
 
     # Create with custom settings
-    framework = create_framework(
-        rules_dir="data/rules",
-        timeout=15000  # 15 second default timeout
-    )
+    framework = create_framework(rules_dir="data/rules", timeout=15000)  # 15 second default timeout
 
     print("\n⚙️  Configuration Options:")
 
@@ -221,7 +218,7 @@ def example_6_complete_workflow():
 
     print("\n🎬 Complete Automation Workflow:\n")
 
-    code = '''
+    code = """
 # 1. Create framework
 from src.modern_api import create_framework
 framework = create_framework(timeout=10000)
@@ -249,7 +246,7 @@ framework.click_image("close_button.png")
 framework.expect_no_image("settings_dialog.png")
 
 print("✓ Workflow completed!")
-'''
+"""
 
     print(code)
 

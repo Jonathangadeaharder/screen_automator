@@ -1,10 +1,11 @@
+import time
 import tkinter as tk
 from tkinter import messagebox, simpledialog
-import pyautogui
-from PIL import Image, ImageTk
+
 import cv2
 import numpy as np
-import time
+import pyautogui
+from PIL import Image, ImageTk
 
 try:
     from screeninfo import get_monitors  # type: ignore
@@ -33,11 +34,13 @@ class ScreenSelector:
         else:
             # Fallback – primary monitor only
             w, h = pyautogui.size()
+
             class Dummy:  # simple struct
                 x = 0
                 y = 0
                 width = w
                 height = h
+
             self.monitors.append(Dummy())
 
         # Ask which monitor (simple listbox if >1)
@@ -64,10 +67,10 @@ class ScreenSelector:
 
         # Create fullscreen window
         self.root = tk.Tk()
-        self.root.attributes('-fullscreen', True)
-        self.root.attributes('-alpha', 0.3)
-        self.root.configure(bg='black')
-        self.root.attributes('-topmost', True)
+        self.root.attributes("-fullscreen", True)
+        self.root.attributes("-alpha", 0.3)
+        self.root.configure(bg="black")
+        self.root.attributes("-topmost", True)
 
         # Offset window to monitor origin
         self.root.geometry(f"{self.screen_width}x{self.screen_height}+{m.x}+{m.y}")
@@ -78,23 +81,23 @@ class ScreenSelector:
             width=self.screen_width,
             height=self.screen_height,
             highlightthickness=0,
-            cursor='crosshair'
+            cursor="crosshair",
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
         # Bind events
-        self.canvas.bind('<Button-1>', self.on_click)
-        self.canvas.bind('<B1-Motion>', self.on_drag)
-        self.canvas.bind('<ButtonRelease-1>', self.on_release)
-        self.root.bind('<Escape>', self.cancel_selection)
+        self.canvas.bind("<Button-1>", self.on_click)
+        self.canvas.bind("<B1-Motion>", self.on_drag)
+        self.canvas.bind("<ButtonRelease-1>", self.on_release)
+        self.root.bind("<Escape>", self.cancel_selection)
 
         # Instructions
         instructions = tk.Label(
             self.root,
             text="Click and drag to select region. Press ESC to cancel.",
-            fg='white',
-            bg='black',
-            font=('Arial', 16)
+            fg="white",
+            bg="black",
+            font=("Arial", 16),
         )
         instructions.place(x=50, y=50)
 
@@ -118,8 +121,14 @@ class ScreenSelector:
                 self.canvas.delete(self.rectangle)
 
             self.rectangle = self.canvas.create_rectangle(
-                self.start_x, self.start_y, event.x, event.y,
-                outline='red', width=2, fill='red', stipple='gray50'
+                self.start_x,
+                self.start_y,
+                event.x,
+                event.y,
+                outline="red",
+                width=2,
+                fill="red",
+                stipple="gray50",
             )
 
     def on_release(self, event):
@@ -180,32 +189,29 @@ class ClickRecorder:
         self.root = tk.Tk()
         self.root.title("Click Recorder")
         self.root.geometry("300x150")
-        self.root.attributes('-topmost', True)
+        self.root.attributes("-topmost", True)
 
-        tk.Label(
-            self.root,
-            text="Click Recording Active",
-            font=('Arial', 14, 'bold')
-        ).pack(pady=10)
+        tk.Label(self.root, text="Click Recording Active", font=("Arial", 14, "bold")).pack(pady=10)
 
         tk.Label(
             self.root,
             text="Click anywhere to record positions.\nPress 'Stop' when done.",
-            font=('Arial', 10)
+            font=("Arial", 10),
         ).pack(pady=5)
 
         stop_button = tk.Button(
             self.root,
             text="Stop Recording",
             command=self.stop_recording,
-            bg='red',
-            fg='white',
-            font=('Arial', 12)
+            bg="red",
+            fg="white",
+            font=("Arial", 12),
         )
         stop_button.pack(pady=10)
 
         # Start listening for clicks
         from pynput import mouse
+
         self.mouse = mouse
         self.listener = mouse.Listener(on_click=self.on_click)
         self.listener.start()
@@ -218,18 +224,15 @@ class ClickRecorder:
         """Handle mouse click events"""
         if pressed and self.recording:
             click_type = "left" if button == self.mouse.Button.left else "right"
-            self.recorded_clicks.append({
-                "x": x,
-                "y": y,
-                "button": click_type,
-                "timestamp": time.time()
-            })
+            self.recorded_clicks.append(
+                {"x": x, "y": y, "button": click_type, "timestamp": time.time()}
+            )
             print(f"Recorded {click_type} click at ({x}, {y})")
 
     def stop_recording(self):
         """Stop recording clicks"""
         self.recording = False
-        if hasattr(self, 'listener'):
+        if hasattr(self, "listener"):
             self.listener.stop()
 
         self.root.quit()
@@ -254,18 +257,14 @@ class KeyRecorder:
         self.root = tk.Tk()
         self.root.title("Key Recorder")
         self.root.geometry("300x200")
-        self.root.attributes('-topmost', True)
+        self.root.attributes("-topmost", True)
 
-        tk.Label(
-            self.root,
-            text="Key Recording Active",
-            font=('Arial', 14, 'bold')
-        ).pack(pady=10)
+        tk.Label(self.root, text="Key Recording Active", font=("Arial", 14, "bold")).pack(pady=10)
 
         tk.Label(
             self.root,
             text="Type to record keystrokes.\nPress 'Stop' when done.",
-            font=('Arial', 10)
+            font=("Arial", 10),
         ).pack(pady=5)
 
         # Text display
@@ -276,17 +275,17 @@ class KeyRecorder:
             self.root,
             text="Stop Recording",
             command=self.stop_recording,
-            bg='red',
-            fg='white',
-            font=('Arial', 12)
+            bg="red",
+            fg="white",
+            font=("Arial", 12),
         )
         stop_button.pack(pady=5)
 
         # Start listening for keys
         from pynput import keyboard
+
         self.listener = keyboard.Listener(
-            on_press=self.on_key_press,
-            on_release=self.on_key_release
+            on_press=self.on_key_press, on_release=self.on_key_release
         )
         self.listener.start()
 
@@ -302,21 +301,17 @@ class KeyRecorder:
         try:
             key_char = key.char
             if key_char:
-                self.recorded_keys.append({
-                    "type": "char",
-                    "key": key_char,
-                    "timestamp": time.time()
-                })
+                self.recorded_keys.append(
+                    {"type": "char", "key": key_char, "timestamp": time.time()}
+                )
                 self.text_display.insert(tk.END, key_char)
                 self.text_display.see(tk.END)
         except AttributeError:
             # Special keys
-            key_name = str(key).replace('Key.', '')
-            self.recorded_keys.append({
-                "type": "special",
-                "key": key_name,
-                "timestamp": time.time()
-            })
+            key_name = str(key).replace("Key.", "")
+            self.recorded_keys.append(
+                {"type": "special", "key": key_name, "timestamp": time.time()}
+            )
             self.text_display.insert(tk.END, f"[{key_name}]")
             self.text_display.see(tk.END)
 
@@ -328,7 +323,7 @@ class KeyRecorder:
     def stop_recording(self):
         """Stop recording keys"""
         self.recording = False
-        if hasattr(self, 'listener'):
+        if hasattr(self, "listener"):
             self.listener.stop()
 
         self.root.quit()

@@ -27,8 +27,9 @@ Example:
 """
 
 from typing import Optional
+
+from .actionability import AutoWaiter, SmartAutomator
 from .automator import ScreenAutomator
-from .actionability import SmartAutomator, AutoWaiter
 from .expectations import expect
 from .rule_manager import Rule
 
@@ -57,10 +58,7 @@ class ScreenAutomatorFramework:
         self.automator = ScreenAutomator(rules_dir=rules_dir)
 
         # Smart automator (auto-waiting for images)
-        self.smart = SmartAutomator(
-            self.automator.image_detector,
-            timeout=timeout
-        )
+        self.smart = SmartAutomator(self.automator.image_detector, timeout=timeout)
 
         # Auto-waiter (for custom waiting logic)
         self.waiter = AutoWaiter(timeout=timeout)
@@ -116,10 +114,7 @@ class ScreenAutomatorFramework:
     # =================================================================
 
     def wait_for_image(
-        self,
-        image_path: str,
-        timeout: Optional[int] = None,
-        ensure_stable: bool = True
+        self, image_path: str, timeout: Optional[int] = None, ensure_stable: bool = True
     ):
         """
         Wait for an image to appear on screen.
@@ -141,22 +136,15 @@ class ScreenAutomatorFramework:
 
         if ensure_stable:
             return self.waiter.wait_for_stable_image(
-                image_path,
-                self.automator.image_detector,
-                timeout=timeout_ms
+                image_path, self.automator.image_detector, timeout=timeout_ms
             )
         else:
             return self.waiter.wait_for_image(
-                image_path,
-                self.automator.image_detector,
-                timeout=timeout_ms
+                image_path, self.automator.image_detector, timeout=timeout_ms
             )
 
     def click_image(
-        self,
-        image_path: str,
-        timeout: Optional[int] = None,
-        ensure_stable: bool = True
+        self, image_path: str, timeout: Optional[int] = None, ensure_stable: bool = True
     ):
         """
         Click an image with automatic waiting.
@@ -173,11 +161,7 @@ class ScreenAutomatorFramework:
         """
         self.smart.click_image(image_path, timeout=timeout, ensure_stable=ensure_stable)
 
-    def wait_for_image_to_disappear(
-        self,
-        image_path: str,
-        timeout: Optional[int] = None
-    ):
+    def wait_for_image_to_disappear(self, image_path: str, timeout: Optional[int] = None):
         """
         Wait for an image to disappear from screen.
 
@@ -213,9 +197,7 @@ class ScreenAutomatorFramework:
             framework.expect_image("success.png", timeout=5000)
         """
         timeout_ms = timeout if timeout is not None else self.timeout
-        expect(self.automator.image_detector, timeout=timeout_ms).to_have_image(
-            image_path
-        )
+        expect(self.automator.image_detector, timeout=timeout_ms).to_have_image(image_path)
 
     def expect_no_image(self, image_path: str, timeout: Optional[int] = None):
         """
@@ -234,9 +216,7 @@ class ScreenAutomatorFramework:
             framework.expect_no_image("loading.png")
         """
         timeout_ms = timeout if timeout is not None else self.timeout
-        expect(self.automator.image_detector, timeout=timeout_ms).not_to_have_image(
-            image_path
-        )
+        expect(self.automator.image_detector, timeout=timeout_ms).not_to_have_image(image_path)
 
     # =================================================================
     # Callbacks (delegates to core automator)

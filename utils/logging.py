@@ -1,24 +1,25 @@
 """Centralized logging system for Screen Automator."""
+
 import logging
 import sys
 import threading
-from typing import Optional, Callable
 from datetime import datetime
+from typing import Callable, Optional
 
 
 class GUILogHandler(logging.Handler):
     """Custom logging handler that sends logs to the GUI activity log."""
-    
+
     def __init__(self):
         super().__init__()
         self.gui_log_callback: Optional[Callable[[str], None]] = None
         self._lock = threading.Lock()
-    
+
     def set_gui_callback(self, callback: Callable[[str], None]):
         """Set the callback function for GUI logging."""
         with self._lock:
             self.gui_log_callback = callback
-    
+
     def emit(self, record):
         """Emit a log record to the GUI."""
         try:
@@ -34,54 +35,53 @@ class GUILogHandler(logging.Handler):
 
 class ScreenAutomatorLogger:
     """Centralized logger for Screen Automator application."""
-    
+
     def __init__(self):
-        self.logger = logging.getLogger('screen_automator')
+        self.logger = logging.getLogger("screen_automator")
         self.logger.setLevel(logging.DEBUG)
-        
+
         # Remove any existing handlers
         self.logger.handlers.clear()
-        
+
         # Create console handler
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(logging.INFO)
         console_formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%H:%M:%S'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
         )
         console_handler.setFormatter(console_formatter)
         self.logger.addHandler(console_handler)
-        
+
         # Create GUI handler
         self.gui_handler = GUILogHandler()
         self.gui_handler.setLevel(logging.DEBUG)
-        gui_formatter = logging.Formatter('%(message)s')
+        gui_formatter = logging.Formatter("%(message)s")
         self.gui_handler.setFormatter(gui_formatter)
         self.logger.addHandler(self.gui_handler)
-        
+
         # Prevent propagation to root logger
         self.logger.propagate = False
-    
+
     def set_gui_callback(self, callback: Callable[[str], None]):
         """Set the GUI callback for log messages."""
         self.gui_handler.set_gui_callback(callback)
-    
+
     def debug(self, msg: str):
         """Log debug message."""
         self.logger.debug(msg)
-    
+
     def info(self, msg: str):
         """Log info message."""
         self.logger.info(msg)
-    
+
     def warning(self, msg: str):
         """Log warning message."""
         self.logger.warning(msg)
-    
+
     def error(self, msg: str):
         """Log error message."""
         self.logger.error(msg)
-    
+
     def critical(self, msg: str):
         """Log critical message."""
         self.logger.critical(msg)
@@ -134,4 +134,4 @@ def critical(msg: str):
 # Function to help migrate from print statements
 def log_print(msg: str):
     """Log a message that was previously a print statement."""
-    get_logger().info(msg) 
+    get_logger().info(msg)

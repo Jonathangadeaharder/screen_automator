@@ -18,13 +18,14 @@ When the UI changes, update only the page object, not every test script.
 Based on the comprehensive improvement blueprint for screen_automator.
 """
 
-from typing import Any, Dict, Optional, Tuple, Union
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, Optional, Tuple, Union
 
 
 class LocatorType(Enum):
     """Types of locators for finding elements."""
+
     IMAGE = "image"
     TEXT = "text"
     WINDOW_TITLE = "window_title"
@@ -54,6 +55,7 @@ class Locator:
         # Coordinate-based locator (fallback)
         menu_item = Locator(type=LocatorType.COORDINATES, value=(100, 200))
     """
+
     type: LocatorType
     value: Any
     control_type: Optional[str] = None
@@ -73,12 +75,7 @@ class Element:
     interface for interacting with elements regardless of how they're found.
     """
 
-    def __init__(
-        self,
-        locator: Locator,
-        automator: Any,
-        parent: Optional['Element'] = None
-    ):
+    def __init__(self, locator: Locator, automator: Any, parent: Optional["Element"] = None):
         """
         Initialize element.
 
@@ -109,7 +106,7 @@ class Element:
 
         if self.locator.type == LocatorType.IMAGE:
             # Use image-based finding
-            if hasattr(self.automator, 'find_image'):
+            if hasattr(self.automator, "find_image"):
                 location = self.automator.find_image(self.locator.value)
                 if location:
                     self._cached_location = location
@@ -135,11 +132,12 @@ class Element:
         """
         location = self.find(timeout)
 
-        if hasattr(self.automator, 'click_at'):
+        if hasattr(self.automator, "click_at"):
             self.automator.click_at(location[0], location[1])
         else:
             # Fallback to pyautogui
             import pyautogui
+
             pyautogui.click(location[0], location[1])
 
     def type_text(self, text: str, timeout: Optional[int] = None):
@@ -155,11 +153,12 @@ class Element:
         # Click to focus first
         self.click(timeout)
 
-        if hasattr(self.automator, 'type_text'):
+        if hasattr(self.automator, "type_text"):
             self.automator.type_text(text)
         else:
             # Fallback to pyautogui
             import pyautogui
+
             pyautogui.typewrite(text)
 
     def is_visible(self, timeout: int = 1000) -> bool:
@@ -201,6 +200,7 @@ class Element:
             TimeoutError: If element still visible after timeout
         """
         import time
+
         timeout_ms = timeout if timeout is not None else self.locator.timeout
         start_time = time.time()
 
@@ -209,9 +209,7 @@ class Element:
                 return
             time.sleep(0.1)
 
-        raise TimeoutError(
-            f"Element {self.locator} still visible after {timeout_ms}ms"
-        )
+        raise TimeoutError(f"Element {self.locator} still visible after {timeout_ms}ms")
 
 
 class BasePage:
@@ -418,12 +416,7 @@ class WindowPage(BasePage):
                 self.text_area.type_text(text)
     """
 
-    def __init__(
-        self,
-        automator: Any,
-        window_manager: Any,
-        window_title: Optional[str] = None
-    ):
+    def __init__(self, automator: Any, window_manager: Any, window_title: Optional[str] = None):
         """
         Initialize window page.
 
@@ -457,11 +450,7 @@ class WindowPage(BasePage):
 
 
 # Factory function for creating locators easily
-def locator(
-    type: Union[str, LocatorType],
-    value: Any,
-    **kwargs
-) -> Locator:
+def locator(type: Union[str, LocatorType], value: Any, **kwargs) -> Locator:
     """
     Factory function for creating locators with less boilerplate.
 
@@ -491,12 +480,7 @@ def image_locator(path: str, **kwargs) -> Locator:
 
 def text_locator(text: str, control_type: Optional[str] = None, **kwargs) -> Locator:
     """Create text-based locator."""
-    return Locator(
-        type=LocatorType.TEXT,
-        value=text,
-        control_type=control_type,
-        **kwargs
-    )
+    return Locator(type=LocatorType.TEXT, value=text, control_type=control_type, **kwargs)
 
 
 def coordinate_locator(x: int, y: int, **kwargs) -> Locator:

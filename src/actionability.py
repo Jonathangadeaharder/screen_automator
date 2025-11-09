@@ -9,13 +9,14 @@ Based on the comprehensive improvement blueprint for screen_automator.
 """
 
 import time
-from typing import Any, Callable, Dict, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Callable, Dict, Optional, Tuple
 
 
 class ActionabilityState(Enum):
     """States that an element can be in for actionability checks."""
+
     VISIBLE = "visible"
     STABLE = "stable"
     ENABLED = "enabled"
@@ -26,6 +27,7 @@ class ActionabilityState(Enum):
 @dataclass
 class ActionabilityResult:
     """Result of an actionability check."""
+
     passed: bool
     state: ActionabilityState
     message: str
@@ -34,11 +36,13 @@ class ActionabilityResult:
 
 class ActionabilityError(Exception):
     """Raised when an element fails actionability checks."""
+
     pass
 
 
 class TimeoutError(Exception):
     """Raised when waiting for a condition times out."""
+
     pass
 
 
@@ -70,7 +74,7 @@ class AutoWaiter:
         self,
         condition: Callable[[], Any],
         condition_name: str = "condition",
-        timeout: Optional[int] = None
+        timeout: Optional[int] = None,
     ) -> Any:
         """
         Wait for a condition to become true.
@@ -118,10 +122,7 @@ class AutoWaiter:
         raise TimeoutError(error_msg)
 
     def wait_for_image(
-        self,
-        image_path: str,
-        automator: Any,
-        timeout: Optional[int] = None
+        self, image_path: str, automator: Any, timeout: Optional[int] = None
     ) -> Tuple[int, int]:
         """
         Wait for an image to appear on screen.
@@ -144,6 +145,7 @@ class AutoWaiter:
         Raises:
             TimeoutError: If image not found within timeout period
         """
+
         def find_image():
             try:
                 location = automator.find_image(image_path)
@@ -151,17 +153,13 @@ class AutoWaiter:
             except Exception:
                 return None
 
-        return self.wait_for_condition(
-            find_image,
-            f"image '{image_path}' to appear",
-            timeout
-        )
+        return self.wait_for_condition(find_image, f"image '{image_path}' to appear", timeout)
 
     def ensure_stable(
         self,
         location_getter: Callable[[], Tuple[int, int]],
         duration: int = 100,
-        tolerance: int = 5
+        tolerance: int = 5,
     ) -> Tuple[int, int]:
         """
         Ensure an element's location is stable (not animating).
@@ -210,16 +208,14 @@ class AutoWaiter:
 
             last_location = current_location
 
-        raise TimeoutError(
-            f"Element location never stabilized within {self.timeout}ms"
-        )
+        raise TimeoutError(f"Element location never stabilized within {self.timeout}ms")
 
     def wait_for_stable_image(
         self,
         image_path: str,
         automator: Any,
         stability_duration: int = 100,
-        timeout: Optional[int] = None
+        timeout: Optional[int] = None,
     ) -> Tuple[int, int]:
         """
         Wait for an image to appear AND be stable.
@@ -251,15 +247,10 @@ class AutoWaiter:
 
         # Then ensure it's stable
         return self.ensure_stable(
-            lambda: automator.find_image(image_path),
-            duration=stability_duration
+            lambda: automator.find_image(image_path), duration=stability_duration
         )
 
-    def check_actionability(
-        self,
-        location: Tuple[int, int],
-        checks: Optional[list] = None
-    ) -> list:
+    def check_actionability(self, location: Tuple[int, int], checks: Optional[list] = None) -> list:
         """
         Perform actionability checks on an element.
 
@@ -296,9 +287,7 @@ class AutoWaiter:
         return results
 
     def _perform_check(
-        self,
-        location: Tuple[int, int],
-        check: ActionabilityState
+        self, location: Tuple[int, int], check: ActionabilityState
     ) -> ActionabilityResult:
         """
         Perform a single actionability check.
@@ -319,7 +308,7 @@ class AutoWaiter:
                 passed=location is not None,
                 state=check,
                 message="Element is visible" if location else "Element not visible",
-                location=location
+                location=location,
             )
 
         elif check == ActionabilityState.STABLE:
@@ -328,14 +317,11 @@ class AutoWaiter:
                 passed=True,
                 state=check,
                 message="Stability should be checked via ensure_stable()",
-                location=location
+                location=location,
             )
 
         return ActionabilityResult(
-            passed=True,
-            state=check,
-            message=f"Check {check.value} passed",
-            location=location
+            passed=True, state=check, message=f"Check {check.value} passed", location=location
         )
 
 
@@ -370,10 +356,7 @@ class SmartAutomator:
         self.waiter = AutoWaiter(timeout=timeout)
 
     def click_image(
-        self,
-        image_path: str,
-        timeout: Optional[int] = None,
-        ensure_stable: bool = True
+        self, image_path: str, timeout: Optional[int] = None, ensure_stable: bool = True
     ):
         """
         Click an image with automatic waiting and stability checks.
@@ -385,30 +368,21 @@ class SmartAutomator:
         """
         if ensure_stable:
             location = self.waiter.wait_for_stable_image(
-                image_path,
-                self.automator,
-                timeout=timeout
+                image_path, self.automator, timeout=timeout
             )
         else:
-            location = self.waiter.wait_for_image(
-                image_path,
-                self.automator,
-                timeout=timeout
-            )
+            location = self.waiter.wait_for_image(image_path, self.automator, timeout=timeout)
 
         # Perform the click
-        if hasattr(self.automator, 'click_at'):
+        if hasattr(self.automator, "click_at"):
             self.automator.click_at(location[0], location[1])
         else:
             # Fallback to pyautogui if available
             import pyautogui
+
             pyautogui.click(location[0], location[1])
 
-    def wait_for_image_to_disappear(
-        self,
-        image_path: str,
-        timeout: Optional[int] = None
-    ):
+    def wait_for_image_to_disappear(self, image_path: str, timeout: Optional[int] = None):
         """
         Wait for an image to disappear from screen.
 
@@ -419,6 +393,7 @@ class SmartAutomator:
         Raises:
             TimeoutError: If image still visible after timeout
         """
+
         def image_gone():
             try:
                 location = self.automator.find_image(image_path)
@@ -426,8 +401,4 @@ class SmartAutomator:
             except Exception:
                 return True  # If find fails, assume it's gone
 
-        self.waiter.wait_for_condition(
-            image_gone,
-            f"image '{image_path}' to disappear",
-            timeout
-        )
+        self.waiter.wait_for_condition(image_gone, f"image '{image_path}' to disappear", timeout)

@@ -2,21 +2,29 @@
 Future refactors will fully move implementations here; currently they re-export
 classes from gui_v2 so existing code keeps working while callers migrate.
 """
+
+from .dialogs import FirstRuleWizard, PerformanceOverlay, TipDialog
 from .record_hud import RecordHUD
 from .rule_editor import RuleEditor
-from .dialogs import TipDialog, FirstRuleWizard, PerformanceOverlay
-from .widgets import ColorBox, ConfirmDialog, SearchEntry, CollapsiblePane, StatusIndicator, KeybindField
+from .widgets import (
+    CollapsiblePane,
+    ColorBox,
+    ConfirmDialog,
+    KeybindField,
+    SearchEntry,
+    StatusIndicator,
+)
 
 __all__ = [
-    'RecordHUD',
-    'RuleEditor',
-    'TipDialog',
-    'FirstRuleWizard',
-    'PerformanceOverlay',
-    'ColorBox',
-    'ConfirmDialog',
-    'SearchEntry',
-    'CollapsiblePane',
-    'StatusIndicator',
-    'KeybindField',
+    "RecordHUD",
+    "RuleEditor",
+    "TipDialog",
+    "FirstRuleWizard",
+    "PerformanceOverlay",
+    "ColorBox",
+    "ConfirmDialog",
+    "SearchEntry",
+    "CollapsiblePane",
+    "StatusIndicator",
+    "KeybindField",
 ]

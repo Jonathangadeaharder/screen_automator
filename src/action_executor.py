@@ -1,11 +1,13 @@
-import pyautogui
-import time
 import os
-import cv2
-import numpy as np
-from typing import Dict, List, Any, Optional, Tuple
+import time
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+import cv2
+import numpy as np
+import pyautogui
+
 from src.image_detector import ImageDetector
 
 
@@ -26,33 +28,27 @@ class ActionType(Enum):
 class Action:
     type: ActionType
     params: Dict[str, Any]
-    
+
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "type": self.type.value,
-            "params": self.params
-        }
-    
+        return {"type": self.type.value, "params": self.params}
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Action":
-        return cls(
-            type=ActionType(data["type"]),
-            params=data["params"]
-        )
+        return cls(type=ActionType(data["type"]), params=data["params"])
 
 
 class ActionExecutor:
     def __init__(self):
         pyautogui.FAILSAFE = True
         pyautogui.PAUSE = 0.1  # Small pause between actions
-    
+
     def execute_action(self, action: Action) -> bool:
         """Execute a single action"""
         try:
             # Store original mouse position for restoration
             original_pos = pyautogui.position()
             result = False
-            
+
             try:
                 if action.type == ActionType.CLICK:
                     result = self._click(action.params)
@@ -77,16 +73,16 @@ class ActionExecutor:
                 else:
                     print(f"Unknown action type: {action.type}")
                     result = False
-            
+
             finally:
                 # Always restore mouse position after action execution
                 pyautogui.moveTo(original_pos)
-                
+
             return result
         except Exception as e:
             print(f"Error executing action {action.type}: {e}")
             return False
-    
+
     def execute_sequence(self, actions: List[Action]) -> bool:
         """Execute a sequence of actions"""
         for i, action in enumerate(actions):
@@ -95,7 +91,7 @@ class ActionExecutor:
                 print(f"Failed to execute action {i+1}")
                 return False
         return True
-    
+
     def execute_actions(self, actions: List[Action], stop_condition=None) -> bool:
         """Execute a sequence of actions with optional stop condition"""
         for i, action in enumerate(actions):
@@ -107,77 +103,77 @@ class ActionExecutor:
                 print(f"Failed to execute action {i+1}")
                 return False
         return True
-    
+
     def _click(self, params: Dict[str, Any]) -> bool:
         x = params.get("x")
         y = params.get("y")
         if x is None or y is None:
             return False
-        
+
         pyautogui.click(x, y)
         return True
-    
+
     def _double_click(self, params: Dict[str, Any]) -> bool:
         x = params.get("x")
         y = params.get("y")
         if x is None or y is None:
             return False
-        
+
         pyautogui.doubleClick(x, y)
         return True
-    
+
     def _right_click(self, params: Dict[str, Any]) -> bool:
         x = params.get("x")
         y = params.get("y")
         if x is None or y is None:
             return False
-        
+
         pyautogui.rightClick(x, y)
         return True
-    
+
     def _type_text(self, params: Dict[str, Any]) -> bool:
         text = params.get("text")
         if text is None:
             return False
-        
+
         interval = params.get("interval", 0.0)
         pyautogui.typewrite(text, interval=interval)
         return True
-    
+
     def _key_press(self, params: Dict[str, Any]) -> bool:
         key = params.get("key")
         if key is None:
             return False
-        
+
         presses = params.get("presses", 1)
         interval = params.get("interval", 0.0)
         pyautogui.press(key, presses=presses, interval=interval)
         return True
-    
+
     def _key_combination(self, params: Dict[str, Any]) -> bool:
         keys = params.get("keys")
         if not keys or not isinstance(keys, list):
             return False
-        
+
         pyautogui.hotkey(*keys)
         return True
-    
+
     def _wait(self, params: Dict[str, Any]) -> bool:
         duration = params.get("duration", 1.0)
         time.sleep(duration)
         return True
-    
+
     def _scroll(self, params: Dict[str, Any]) -> bool:
         clicks = params.get("clicks", 0)
         x = params.get("x", None)
         y = params.get("y", None)
-        
+
         if x is not None and y is not None:
             pyautogui.moveTo(x, y)
-        
+
         pyautogui.scroll(clicks)
         return True
-        
+
     def _move(self, params: Dict[str, Any]) -> bool:
         """Move mouse to a position"""
         x = params.get("x")
@@ -192,21 +188,21 @@ class ActionExecutor:
         """Find an image on screen and click its center"""
         image_path = params.get("image_path")
         confidence = params.get("confidence", 0.8)
-        
+
         if not image_path or not os.path.exists(image_path):
             print(f"Image path not found: {image_path}")
             return False
-            
+
         try:
             detector = ImageDetector(confidence_threshold=confidence)
             result = detector.find_image_on_screen(image_path)
-            
+
             if result:
                 x, y, width, height = result
                 # Click center of the found image
                 center_x = x + width // 2
                 center_y = y + height // 2
-                
+
                 pyautogui.click(center_x, center_y)
                 return True
             else:
@@ -221,23 +217,30 @@ class ActionExecutor:
 def create_click_action(x: int, y: int) -> Action:
     return Action(ActionType.CLICK, {"x": x, "y": y})
 
+
 def create_double_click_action(x: int, y: int) -> Action:
     return Action(ActionType.DOUBLE_CLICK, {"x": x, "y": y})
+
 
 def create_right_click_action(x: int, y: int) -> Action:
     return Action(ActionType.RIGHT_CLICK, {"x": x, "y": y})
 
+
 def create_type_text_action(text: str, interval: float = 0.0) -> Action:
     return Action(ActionType.TYPE_TEXT, {"text": text, "interval": interval})
+
 
 def create_key_press_action(key: str, presses: int = 1, interval: float = 0.0) -> Action:
     return Action(ActionType.KEY_PRESS, {"key": key, "presses": presses, "interval": interval})
 
+
 def create_key_combination_action(keys: List[str]) -> Action:
     return Action(ActionType.KEY_COMBINATION, {"keys": keys})
 
+
 def create_wait_action(duration: float) -> Action:
     return Action(ActionType.WAIT, {"duration": duration})
+
 
 def create_scroll_action(clicks: int, x: Optional[int] = None, y: Optional[int] = None) -> Action:
     params = {"clicks": clicks}
@@ -246,13 +249,12 @@ def create_scroll_action(clicks: int, x: Optional[int] = None, y: Optional[int] 
         params["y"] = y
     return Action(ActionType.SCROLL, params)
 
+
 def create_move_action(x: int, y: int, duration: float = 0) -> Action:
     """Create an action to move the mouse to a position"""
     return Action(ActionType.MOVE, {"x": x, "y": y, "duration": duration})
 
+
 def create_click_image_action(image_path: str, confidence: float = 0.8) -> Action:
     """Create an action to click on the center of an image found on screen"""
-    return Action(ActionType.CLICK_IMAGE, {
-        "image_path": image_path,
-        "confidence": confidence
-    })
+    return Action(ActionType.CLICK_IMAGE, {"image_path": image_path, "confidence": confidence})
