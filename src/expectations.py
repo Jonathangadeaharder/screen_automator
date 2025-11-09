@@ -15,7 +15,7 @@ Based on the comprehensive improvement blueprint for screen_automator.
 
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Tuple
+from typing import Any, Callable
 
 
 class ExpectationError(AssertionError):
@@ -227,7 +227,7 @@ class ImageExpectation(Expectation):
                     else:
                         return ExpectationResult(
                             passed=False,
-                            message=f"Image at wrong location",
+                            message="Image at wrong location",
                             expected=f"({x}, {y}) ±{tolerance}px",
                             actual=f"({actual_x}, {actual_y})",
                         )
@@ -289,7 +289,7 @@ class WindowExpectation(Expectation):
 
                 return ExpectationResult(
                     passed=False,
-                    message=f"Window not found",
+                    message="Window not found",
                     expected=f"Window with title '{title}'",
                     actual=f"Available windows: {[getattr(w, 'title', str(w)) for w in windows]}",
                 )

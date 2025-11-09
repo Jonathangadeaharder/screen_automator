@@ -96,12 +96,7 @@ def test_action_creation():
 
     from src.action_executor import (
         ActionType,
-        create_click_action,
-        create_double_click_action,
         create_key_combination_action,
-        create_key_press_action,
-        create_right_click_action,
-        create_scroll_action,
         create_type_text_action,
         create_wait_action,
     )

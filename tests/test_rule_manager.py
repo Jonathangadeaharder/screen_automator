@@ -1,8 +1,6 @@
-import os
-import tempfile
 
 from src.action_executor import create_click_action
-from src.rule_manager import Rule, RuleManager
+from src.rule_manager import RuleManager
 
 
 def test_create_and_save_rule(tmp_path):

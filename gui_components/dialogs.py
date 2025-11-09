@@ -1,9 +1,5 @@
 """Common dialog components for the Screen Automator GUI."""
 
-import os
-import random
-import time
-from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
@@ -224,7 +220,7 @@ class PerformanceOverlay(tb.Toplevel):
         self.lbl_stats.pack(padx=10, pady=6)
 
         # Position top-left with slight margin
-        self.geometry(f"+20+20")
+        self.geometry("+20+20")
 
         # periodic refresh
         self._refresh()

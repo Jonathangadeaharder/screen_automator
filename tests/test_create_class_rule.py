@@ -6,7 +6,6 @@ This provides the most robust window targeting method
 
 import os
 import sys
-import time
 import uuid
 
 # Add src to path
@@ -57,14 +56,14 @@ def create_class_rule():
     rule_manager.rules[rule_id] = rule
     rule_manager.save_rule(rule)
 
-    print(f"\n✅ Created class-based rule: 'Class-Based Rule'")
+    print("\n✅ Created class-based rule: 'Class-Based Rule'")
     print(f"   - Targets window class: '{active_window.class_name}'")
     print(f"   - Window title: '{active_window.title}'")
     print(f"   - Process: '{active_window.process_name}'")
-    print(f"   - Condition: Screen unchanged for 0.1 minutes")
-    print(f"   - Action: Wait 2 seconds")
-    print(f"   - Identification method: class")
-    print(f"   - Cluster group: 'class_based'")
+    print("   - Condition: Screen unchanged for 0.1 minutes")
+    print("   - Action: Wait 2 seconds")
+    print("   - Identification method: class")
+    print("   - Cluster group: 'class_based'")
     print("\nThis rule will target any window with the same class.")
     print("This is the most robust targeting method as class names rarely change.")
 

@@ -6,7 +6,7 @@ or requiring a GUI environment. All GUI components are mocked.
 
 import os
 import sys
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -38,7 +38,7 @@ def test_gui_py_file_structure():
     assert os.path.exists(gui_file), "gui.py file should exist"
 
     # Read and verify basic structure without importing
-    with open(gui_file, "r", encoding="utf-8") as f:
+    with open(gui_file, encoding="utf-8") as f:
         content = f.read()
         assert "ScreenAutomatorGUI" in content, "gui.py should contain ScreenAutomatorGUI class"
         assert "if __name__" in content, "gui.py should have main guard"
@@ -101,7 +101,7 @@ def test_gui_class_structure_analysis():
         pytest.skip("gui/main_window.py not found")
 
     try:
-        with open(gui_main_file, "r", encoding="utf-8") as f:
+        with open(gui_main_file, encoding="utf-8") as f:
             content = f.read()
 
         # Verify the class structure
@@ -165,7 +165,7 @@ def test_gui_file_syntax():
     for gui_file in gui_files:
         if os.path.exists(gui_file):
             try:
-                with open(gui_file, "r", encoding="utf-8") as f:
+                with open(gui_file, encoding="utf-8") as f:
                     content = f.read()
 
                 # Compile to check syntax without executing
@@ -196,7 +196,7 @@ def test_gui_configuration_files():
     # Verify pytest configuration supports GUI testing
     pytest_ini = os.path.join(PROJECT_ROOT, "pytest.ini")
     if os.path.exists(pytest_ini):
-        with open(pytest_ini, "r") as f:
+        with open(pytest_ini) as f:
             content = f.read()
             if "timeout" in content.lower():
                 print("+ pytest.ini: Timeout configuration found")

@@ -2,10 +2,8 @@ import os
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
-import cv2
-import numpy as np
 import pyautogui
 
 from src.image_detector import ImageDetector
@@ -27,13 +25,13 @@ class ActionType(Enum):
 @dataclass
 class Action:
     type: ActionType
-    params: Dict[str, Any]
+    params: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"type": self.type.value, "params": self.params}
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Action":
+    def from_dict(cls, data: dict[str, Any]) -> "Action":
         return cls(type=ActionType(data["type"]), params=data["params"])
 
 
@@ -83,7 +81,7 @@ class ActionExecutor:
             print(f"Error executing action {action.type}: {e}")
             return False
 
-    def execute_sequence(self, actions: List[Action]) -> bool:
+    def execute_sequence(self, actions: list[Action]) -> bool:
         """Execute a sequence of actions"""
         for i, action in enumerate(actions):
             print(f"Executing action {i+1}/{len(actions)}: {action.type.value}")
@@ -92,7 +90,7 @@ class ActionExecutor:
                 return False
         return True
 
-    def execute_actions(self, actions: List[Action], stop_condition=None) -> bool:
+    def execute_actions(self, actions: list[Action], stop_condition=None) -> bool:
         """Execute a sequence of actions with optional stop condition"""
         for i, action in enumerate(actions):
             if stop_condition and stop_condition():
@@ -104,7 +102,7 @@ class ActionExecutor:
                 return False
         return True
 
-    def _click(self, params: Dict[str, Any]) -> bool:
+    def _click(self, params: dict[str, Any]) -> bool:
         x = params.get("x")
         y = params.get("y")
         if x is None or y is None:
@@ -113,7 +111,7 @@ class ActionExecutor:
         pyautogui.click(x, y)
         return True
 
-    def _double_click(self, params: Dict[str, Any]) -> bool:
+    def _double_click(self, params: dict[str, Any]) -> bool:
         x = params.get("x")
         y = params.get("y")
         if x is None or y is None:
@@ -122,7 +120,7 @@ class ActionExecutor:
         pyautogui.doubleClick(x, y)
         return True
 
-    def _right_click(self, params: Dict[str, Any]) -> bool:
+    def _right_click(self, params: dict[str, Any]) -> bool:
         x = params.get("x")
         y = params.get("y")
         if x is None or y is None:
@@ -131,7 +129,7 @@ class ActionExecutor:
         pyautogui.rightClick(x, y)
         return True
 
-    def _type_text(self, params: Dict[str, Any]) -> bool:
+    def _type_text(self, params: dict[str, Any]) -> bool:
         text = params.get("text")
         if text is None:
             return False
@@ -140,7 +138,7 @@ class ActionExecutor:
         pyautogui.typewrite(text, interval=interval)
         return True
 
-    def _key_press(self, params: Dict[str, Any]) -> bool:
+    def _key_press(self, params: dict[str, Any]) -> bool:
         key = params.get("key")
         if key is None:
             return False
@@ -150,7 +148,7 @@ class ActionExecutor:
         pyautogui.press(key, presses=presses, interval=interval)
         return True
 
-    def _key_combination(self, params: Dict[str, Any]) -> bool:
+    def _key_combination(self, params: dict[str, Any]) -> bool:
         keys = params.get("keys")
         if not keys or not isinstance(keys, list):
             return False
@@ -158,12 +156,12 @@ class ActionExecutor:
         pyautogui.hotkey(*keys)
         return True
 
-    def _wait(self, params: Dict[str, Any]) -> bool:
+    def _wait(self, params: dict[str, Any]) -> bool:
         duration = params.get("duration", 1.0)
         time.sleep(duration)
         return True
 
-    def _scroll(self, params: Dict[str, Any]) -> bool:
+    def _scroll(self, params: dict[str, Any]) -> bool:
         clicks = params.get("clicks", 0)
         x = params.get("x", None)
         y = params.get("y", None)
@@ -174,7 +172,7 @@ class ActionExecutor:
         pyautogui.scroll(clicks)
         return True
 
-    def _move(self, params: Dict[str, Any]) -> bool:
+    def _move(self, params: dict[str, Any]) -> bool:
         """Move mouse to a position"""
         x = params.get("x")
         y = params.get("y")
@@ -184,7 +182,7 @@ class ActionExecutor:
         pyautogui.moveTo(x, y, duration=duration)
         return True
 
-    def _click_image(self, params: Dict[str, Any]) -> bool:
+    def _click_image(self, params: dict[str, Any]) -> bool:
         """Find an image on screen and click its center"""
         image_path = params.get("image_path")
         confidence = params.get("confidence", 0.8)
@@ -234,7 +232,7 @@ def create_key_press_action(key: str, presses: int = 1, interval: float = 0.0) -
     return Action(ActionType.KEY_PRESS, {"key": key, "presses": presses, "interval": interval})
 
 
-def create_key_combination_action(keys: List[str]) -> Action:
+def create_key_combination_action(keys: list[str]) -> Action:
     return Action(ActionType.KEY_COMBINATION, {"keys": keys})
 
 

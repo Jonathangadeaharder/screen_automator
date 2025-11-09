@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Comprehensive test suite with mocks for automated testing of CLI, GUI, and core components."""
-import json
 import os
 import sys
 import tempfile
-import tkinter as tk
-from unittest.mock import MagicMock, Mock, mock_open, patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
@@ -26,7 +24,7 @@ from src.action_executor import (
 )
 from src.automator import ScreenAutomator
 from src.image_detector import ImageDetector
-from src.rule_manager import Rule, RuleManager
+from src.rule_manager import RuleManager
 
 
 class TestCLIComprehensive:
@@ -117,7 +115,7 @@ class TestCoreComprehensive:
         """Test ScreenAutomator initialization."""
         automator = ScreenAutomator(self.temp_dir)
 
-        assert automator.running == False
+        assert not automator.running
         assert automator.check_interval == 1.0
         mock_rule_mgr.assert_called_once_with(self.temp_dir)
         mock_executor.assert_called_once()
@@ -135,11 +133,11 @@ class TestCoreComprehensive:
 
         # Test start monitoring
         automator.start_monitoring()
-        assert automator.running == True
+        assert automator.running
 
         # Test stop monitoring
         automator.stop_monitoring()
-        assert automator.running == False
+        assert not automator.running
 
     def test_rule_manager_create_rule(self):
         """Test RuleManager rule creation."""
@@ -156,7 +154,7 @@ class TestCoreComprehensive:
         assert rule.name == "Test Rule"
         assert rule.image_path == "/test/image.png"
         assert len(rule.actions) == 1
-        assert rule.enabled == True
+        assert rule.enabled
         assert rule.id in rule_manager.rules
 
     def test_rule_manager_crud_operations(self):
@@ -173,14 +171,14 @@ class TestCoreComprehensive:
 
         # Update
         success = rule_manager.update_rule(rule.id, name="Updated Rule", enabled=False)
-        assert success == True
+        assert success
         updated = rule_manager.get_rule(rule.id)
         assert updated.name == "Updated Rule"
-        assert updated.enabled == False
+        assert not updated.enabled
 
         # Delete
         success = rule_manager.delete_rule(rule.id)
-        assert success == True
+        assert success
         assert rule.id not in rule_manager.rules
 
     @patch("pyautogui.click")
@@ -191,7 +189,7 @@ class TestCoreComprehensive:
 
         result = executor.execute_action(action)
 
-        assert result == True
+        assert result
         mock_click.assert_called_once_with(100, 200)
 
     @patch("pyautogui.typewrite")
@@ -202,7 +200,7 @@ class TestCoreComprehensive:
 
         result = executor.execute_action(action)
 
-        assert result == True
+        assert result
         mock_type.assert_called_once_with("Hello World", interval=0.0)
 
     @patch("time.sleep")
@@ -213,7 +211,7 @@ class TestCoreComprehensive:
 
         result = executor.execute_action(action)
 
-        assert result == True
+        assert result
         # The action executor may call sleep multiple times (including restore delays)
         assert mock_sleep.call_count > 0
         # Check that 2.5 was one of the calls
@@ -285,7 +283,7 @@ class TestGUIComprehensive:
         mock_switch.is_on = False
 
         # Test initial state
-        assert mock_switch.is_on == False
+        assert not mock_switch.is_on
 
         # Test toggle behavior
         def mock_toggle():
@@ -299,11 +297,11 @@ class TestGUIComprehensive:
 
         # Test toggle
         mock_switch.toggle()
-        assert mock_switch.is_on == True
+        assert mock_switch.is_on
 
         # Test set method
         mock_switch.set(False)
-        assert mock_switch.is_on == False
+        assert not mock_switch.is_on
 
     @patch("tkinter.Tk")
     @patch("src.automator.ScreenAutomator")
@@ -421,7 +419,7 @@ class TestIntegration:
         # Test rule update
         rule_manager.update_rule(rule.id, enabled=False)
         updated_rule = rule_manager.get_rule(rule.id)
-        assert updated_rule.enabled == False
+        assert not updated_rule.enabled
 
         # Test enabled rules filtering
         enabled_rules = rule_manager.list_enabled_rules()
@@ -447,7 +445,7 @@ class TestIntegration:
 
         result = executor.execute_sequence(actions)
 
-        assert result == True
+        assert result
         mock_click.assert_called_once_with(100, 200)
         mock_type.assert_called_once_with("Test", interval=0.0)
         # Check that 0.5 was one of the sleep calls
@@ -478,11 +476,11 @@ class TestErrorHandling:
 
         # Test update nonexistent rule
         result = rule_manager.update_rule("nonexistent-id", name="New Name")
-        assert result == False
+        assert not result
 
         # Test delete nonexistent rule
         result = rule_manager.delete_rule("nonexistent-id")
-        assert result == False
+        assert not result
 
     def test_action_executor_invalid_action(self):
         """Test action executor with invalid actions."""
@@ -494,7 +492,7 @@ class TestErrorHandling:
         invalid_action = Action(ActionType.CLICK, {})  # Missing x, y
 
         result = executor.execute_action(invalid_action)
-        assert result == False
+        assert not result
 
     @patch("cv2.imread", return_value=None)
     def test_image_detector_invalid_template(self, mock_imread):

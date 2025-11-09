@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-import json
 import os
 import sys
-from typing import List
 
 import click
 
@@ -10,7 +8,6 @@ import click
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from src.action_executor import (
-    Action,
     create_click_action,
     create_double_click_action,
     create_key_combination_action,
@@ -23,7 +20,6 @@ from src.action_executor import (
 from src.context_automator import ContextAwareAutomator
 
 # Modern API (recommended)
-from src.modern_api import create_framework
 from src.window_manager import WindowManager
 
 
@@ -129,11 +125,11 @@ def list_rules(ctx):
         click.echo(f"  {status} {rule.name} (ID: {rule.id[:8]}...)")
 
         if condition_type == "image":
-            click.echo(f"      Type: Image detection")
+            click.echo("      Type: Image detection")
             click.echo(f"      Image: {rule.image_path}")
         else:
             timeout = getattr(rule, "screen_unchanged_timeout", 5.0)
-            click.echo(f"      Type: Screen unchanged")
+            click.echo("      Type: Screen unchanged")
             click.echo(f"      Timeout: {timeout} minutes")
 
         click.echo(f"      Actions: {len(rule.actions)}")
@@ -351,7 +347,6 @@ def test_rule(ctx, rule_id, timeout):
     click.echo(f"🧪 Testing rule '{rule.name}' (timeout: {timeout}s)...")
 
     import threading
-    import time
 
     result = [None]  # Use list to allow modification in nested function
 
@@ -398,7 +393,6 @@ def force_rule(ctx, rule_id, timeout):
         click.echo(f"⚡ Force executing rule '{rule.name}'...")
 
         import threading
-        import time
 
         result = [None]  # Use list to allow modification in nested function
 

@@ -1,11 +1,9 @@
 """Custom widget components for Screen Automator GUI."""
 
 import tkinter as tk
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from ttkbootstrap.scrolled import ScrolledFrame
 
 from core.localization import _
 
@@ -263,7 +261,7 @@ class KeybindField(tb.Frame):
 
         return key_map.get(key, key)
 
-    def set_keys(self, keys: List[str]) -> None:
+    def set_keys(self, keys: list[str]) -> None:
         """Set the keybind externally."""
         self.keys = keys
         self._update_display()

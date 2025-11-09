@@ -2,7 +2,6 @@
 
 import threading
 import time
-from typing import List
 
 import ttkbootstrap as tb
 from pynput import keyboard, mouse
@@ -48,7 +47,7 @@ class RecordHUD(tb.Toplevel):
         self.paused = False
         self.idle_threshold = 60  # seconds
         self._last_activity = time.time()
-        self.events: List[Action] = []
+        self.events: list[Action] = []
 
         # Threads
         threading.Thread(target=self._mouse_thread, daemon=True).start()

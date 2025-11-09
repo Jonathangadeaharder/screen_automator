@@ -2,8 +2,7 @@ import platform
 import subprocess
 import time
 from dataclasses import dataclass
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 # Windows-specific imports
 if platform.system() == "Windows":
@@ -36,7 +35,7 @@ class WindowInfo:
     is_minimized: bool
     class_name: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "handle": self.handle,
             "title": self.title,
@@ -60,7 +59,7 @@ class WindowManager:
         self._current_active_window = None
         self._original_active_window = None
 
-    def get_running_windows(self, include_minimized: bool = True) -> List[WindowInfo]:
+    def get_running_windows(self, include_minimized: bool = True) -> list[WindowInfo]:
         """Get list of all running windows"""
         if self.system == "Windows" and HAS_WIN32:
             return self._get_windows_windows(include_minimized)
@@ -72,7 +71,7 @@ class WindowManager:
             print(f"Window management not supported on {self.system}")
             return []
 
-    def _get_windows_windows(self, include_minimized: bool) -> List[WindowInfo]:
+    def _get_windows_windows(self, include_minimized: bool) -> list[WindowInfo]:
         """Get windows on Windows OS using win32gui"""
         windows = []
 
@@ -128,7 +127,7 @@ class WindowManager:
 
         return windows
 
-    def _get_linux_windows(self, include_minimized: bool) -> List[WindowInfo]:
+    def _get_linux_windows(self, include_minimized: bool) -> list[WindowInfo]:
         """Get windows on Linux using wmctrl"""
         windows = []
         try:
@@ -140,7 +139,7 @@ class WindowManager:
                         parts = line.split(None, 7)  # Split into at most 8 parts
                         if len(parts) >= 8:
                             window_id = int(parts[0], 16)  # Hex to int
-                            desktop = parts[1]
+                            parts[1]
                             x = int(parts[2])
                             y = int(parts[3])
                             width = int(parts[4])
@@ -189,7 +188,7 @@ class WindowManager:
 
         return windows
 
-    def _get_macos_windows(self, include_minimized: bool) -> List[WindowInfo]:
+    def _get_macos_windows(self, include_minimized: bool) -> list[WindowInfo]:
         """Get windows on macOS using AppleScript"""
         windows = []
         try:
@@ -419,7 +418,7 @@ class WindowManager:
                 return window
         return None
 
-    def find_windows_by_process(self, process_name: str) -> List[WindowInfo]:
+    def find_windows_by_process(self, process_name: str) -> list[WindowInfo]:
         """Find windows by process name"""
         windows = self.get_running_windows()
         return [w for w in windows if process_name.lower() in w.process_name.lower()]

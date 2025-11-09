@@ -6,7 +6,6 @@ Test script to demonstrate window management integration in GUI
 import os
 import subprocess
 import sys
-import time
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -58,7 +57,7 @@ def test_features():
     try:
         from src.context_automator import ContextAwareAutomator
 
-        ca = ContextAwareAutomator()
+        ContextAwareAutomator()
         print("✅ Context-Aware Automator: Initialized successfully")
     except Exception as e:
         print(f"❌ Context-Aware Automator error: {e}")
@@ -67,7 +66,7 @@ def test_features():
     try:
         from src.rule_manager import RuleManager
 
-        rm = RuleManager()
+        RuleManager()
         print("✅ Extended Rule Manager: Initialized successfully")
     except Exception as e:
         print(f"❌ Extended Rule Manager error: {e}")

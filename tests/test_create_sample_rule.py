@@ -6,7 +6,6 @@ This will help demonstrate that context switching works
 
 import os
 import sys
-import time
 import uuid
 
 # Add src to path
@@ -43,10 +42,10 @@ def create_sample_rule():
     rule_manager.rules[rule_id] = rule
     rule_manager.save_rule(rule)
 
-    print(f"✅ Created test rule: 'Test Context Switching'")
-    print(f"   - Targets window: 'Screen Automator'")
-    print(f"   - Condition: Screen unchanged for 0.1 minutes")
-    print(f"   - Action: Wait 2 seconds")
+    print("✅ Created test rule: 'Test Context Switching'")
+    print("   - Targets window: 'Screen Automator'")
+    print("   - Condition: Screen unchanged for 0.1 minutes")
+    print("   - Action: Wait 2 seconds")
     print("\nThis rule should trigger quickly and demonstrate context switching.")
     print("You should see the Screen Automator window come to the front when the rule triggers.")
 

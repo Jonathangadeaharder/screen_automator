@@ -1,10 +1,9 @@
 import time
-from typing import List, Optional, Tuple
+from typing import Optional
 
 import cv2
 import numpy as np
 import pyautogui
-from PIL import Image
 
 
 class ImageDetector:
@@ -28,7 +27,7 @@ class ImageDetector:
 
     def find_image_on_screen(
         self, template_path: str, screen_image: Optional[np.ndarray] = None
-    ) -> Optional[Tuple[int, int, int, int]]:
+    ) -> Optional[tuple[int, int, int, int]]:
         """
         Find template image on screen using template matching
         Returns (x, y, width, height) of found image or None
@@ -67,7 +66,7 @@ class ImageDetector:
 
     def find_all_matches(
         self, template_path: str, screen_image: Optional[np.ndarray] = None
-    ) -> List[Tuple[int, int, int, int]]:
+    ) -> list[tuple[int, int, int, int]]:
         """Find all instances of template image on screen"""
         if screen_image is None:
             screen_image = self.capture_screen()
@@ -91,7 +90,7 @@ class ImageDetector:
 
     def wait_for_image(
         self, template_path: str, timeout: float = 10.0, check_interval: float = 0.5
-    ) -> Optional[Tuple[int, int, int, int]]:
+    ) -> Optional[tuple[int, int, int, int]]:
         """Wait for image to appear on screen with timeout"""
         start_time = time.time()
 

@@ -5,12 +5,10 @@ import threading
 import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
-from tkinter.font import Font
 
 import pyautogui
-import pynput
 from PIL import Image, ImageTk
-from pynput import keyboard, mouse
+from pynput import mouse
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -120,8 +118,6 @@ class ToggleSwitch(tk.Canvas):
 
 
 from src.action_executor import (
-    Action,
-    ActionExecutor,
     ActionType,
     create_click_action,
     create_click_image_action,
@@ -133,11 +129,10 @@ from src.action_executor import (
     create_type_text_action,
     create_wait_action,
 )
-from src.automator import ScreenAutomator
 from src.context_automator import ContextAwareAutomator
-from src.screen_selector import KeyRecorder, ScreenSelector
-from src.window_manager import WindowInfo, WindowManager
-from utils.logging import get_logger, setup_gui_logging
+from src.screen_selector import ScreenSelector
+from src.window_manager import WindowManager
+from utils.logging import setup_gui_logging
 
 # Using our own implementation of ClickRecorder for better control
 
@@ -1134,7 +1129,7 @@ class ScreenAutomatorGUI:
             self.rules_tree.selection_set(self.drag_source)
 
         # Find the target position
-        target_y = self.rules_tree.bbox(target)[1]
+        self.rules_tree.bbox(target)[1]
 
         # Visual indicator of insert position
         self.rules_tree.tag_configure("insert_marker", background="#CCFFCC")
@@ -1170,7 +1165,7 @@ class ScreenAutomatorGUI:
         items = self.rules_tree.get_children()
 
         # Find the positions in the tree
-        source_index = items.index(source_id)
+        items.index(source_id)
         target_index = items.index(target_id)
 
         # Move the item in the tree
@@ -1186,7 +1181,7 @@ class ScreenAutomatorGUI:
             if rule_id:
                 self.automator.rule_manager.update_rule(rule_id, priority=(i + 1) * 100)
 
-        self.log_message(f"Rule order updated")
+        self.log_message("Rule order updated")
 
     def toggle_all_rules(self):
         """Toggle all rules on or off based on current state"""
@@ -1369,12 +1364,12 @@ class ScreenAutomatorGUI:
         if getattr(self.current_rule, "target_window_class", ""):
             self.window_info_var.set(
                 f"Target: {getattr(self.current_rule, 'target_window_class', '')}\n"
-                + f"Using: Window Class"
+                + "Using: Window Class"
             )
         elif getattr(self.current_rule, "target_window_process", ""):
             self.window_info_var.set(
                 f"Target: {getattr(self.current_rule, 'target_window_process', '')}\n"
-                + f"Using: Process Name"
+                + "Using: Process Name"
             )
         else:
             self.window_info_var.set("Rule will apply to any window")
@@ -1389,7 +1384,7 @@ class ScreenAutomatorGUI:
 
         # Populate actions
         self.actions_listbox.delete(0, tk.END)
-        for i, action in enumerate(self.current_actions):
+        for _i, action in enumerate(self.current_actions):
             self.actions_listbox.insert(tk.END, self.action_to_string(action))
 
         self.notebook.select(self.editor_frame)
@@ -2086,7 +2081,7 @@ class ScreenAutomatorGUI:
                 # Show context-aware information
                 if isinstance(self.automator, ContextAwareAutomator):
                     self.log_message(
-                        f"🗂️  Context-aware monitoring enabled - rules will target specific windows"
+                        "🗂️  Context-aware monitoring enabled - rules will target specific windows"
                     )
             else:
                 self.log_message(
@@ -2094,7 +2089,7 @@ class ScreenAutomatorGUI:
                 )
 
             self.automator.start_monitoring()
-            self.log_message(f"✅ Monitoring started successfully")
+            self.log_message("✅ Monitoring started successfully")
 
     def stop_monitoring(self):
         """Stop the screen automator."""

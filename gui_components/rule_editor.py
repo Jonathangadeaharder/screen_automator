@@ -3,7 +3,6 @@
 import copy
 import os
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
@@ -214,7 +213,7 @@ class RuleEditor(tb.Toplevel):
 
         self.destroy()
 
-    def _action_to_text(self, action: Action) -> Tuple[str, str]:
+    def _action_to_text(self, action: Action) -> tuple[str, str]:
         """Convert an action to displayable text for the treeview."""
         type_str = _(action.type.value.replace("_", " ").title())
 
@@ -233,7 +232,7 @@ class RuleEditor(tb.Toplevel):
         return type_str, params_str
 
     # Action list management
-    _action_cache: Dict[str, Action] = {}  # Cache actions by UUID
+    _action_cache: dict[str, Action] = {}  # Cache actions by UUID
 
     def _add_action_to_list(self, action: Action) -> None:
         """Add an action to the displayed list."""
@@ -255,7 +254,7 @@ class RuleEditor(tb.Toplevel):
         self.undo_stack.append(state)
         self.redo_stack.clear()  # Clear redo stack on new change
 
-    def _restore_state(self, state: List[Action]) -> None:
+    def _restore_state(self, state: list[Action]) -> None:
         """Restore action list to a saved state."""
         # Clear list
         for item in self.action_list.get_children():

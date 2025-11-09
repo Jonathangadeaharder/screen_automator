@@ -1,10 +1,6 @@
 """MainWindow class for Screen Automator GUI."""
 
 import os
-import sys
-import threading
-import time
-from typing import Any, Dict, Optional
 
 try:
     import psutil
@@ -16,17 +12,9 @@ from ttkbootstrap.constants import *
 from ttkbootstrap.tooltip import ToolTip
 
 from core.localization import _
-from core.telemetry import send_telemetry
 from gui_components.dialogs import FirstRuleWizard, PerformanceOverlay, TipDialog
-from gui_components.record_hud import RecordHUD
-from gui_components.rule_editor import RuleEditor
 from gui_components.widgets import (
-    CollapsiblePane,
-    ColorBox,
-    ConfirmDialog,
-    KeybindField,
     SearchEntry,
-    StatusIndicator,
 )
 from src.automator import ScreenAutomator
 from utils import load_config, save_config
@@ -174,7 +162,7 @@ class MainWindow(tb.Window):
     def _new_rule(self):
         """Create a new automation rule"""
         try:
-            wizard = FirstRuleWizard(self)
+            FirstRuleWizard(self)
             # Handle new rule creation
         except Exception as e:
             print(f"Error creating new rule: {e}")
@@ -248,7 +236,7 @@ class MainWindow(tb.Window):
         """Show tip dialog"""
         try:
             if self.show_tips:
-                tip_dialog = TipDialog(self)
+                TipDialog(self)
         except Exception as e:
             print(f"Error showing tip: {e}")
 

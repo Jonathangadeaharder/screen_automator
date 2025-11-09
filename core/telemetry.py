@@ -6,8 +6,7 @@ import threading
 import time
 import urllib.request
 import uuid
-from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from utils.config import get_config_dir
 
@@ -37,7 +36,7 @@ def get_machine_id() -> str:
 
 
 def send_telemetry(
-    event_name: str, event_data: Dict[str, Any] = None, opt_in: bool = False
+    event_name: str, event_data: dict[str, Any] = None, opt_in: bool = False
 ) -> None:
     """Send telemetry data to server if user has opted in."""
     if not opt_in:
@@ -63,7 +62,7 @@ def send_telemetry(
     threading.Thread(target=_send_telemetry_worker, args=(payload,), daemon=True).start()
 
 
-def _send_telemetry_worker(payload: Dict[str, Any]) -> None:
+def _send_telemetry_worker(payload: dict[str, Any]) -> None:
     """Worker thread to send telemetry without blocking."""
     try:
         url = TELEMETRY_URL + TELEMETRY_ENDPOINT

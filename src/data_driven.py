@@ -13,10 +13,11 @@ Based on the comprehensive improvement blueprint for screen_automator.
 import csv
 import json
 import xml.etree.ElementTree as ET
-from dataclasses import asdict, dataclass
+from collections.abc import Iterator
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Optional, Union
 
 
 class DataFormat(Enum):
@@ -35,7 +36,7 @@ class TestDataRow:
     This provides a consistent interface regardless of source format.
     """
 
-    data: Dict[str, Any]
+    data: dict[str, Any]
     row_number: int
     source_file: str
 
@@ -80,7 +81,7 @@ class DataProvider:
         """
         self.file_path = Path(file_path)
         self.format = format or self._detect_format()
-        self._data: Optional[List[Dict[str, Any]]] = None
+        self._data: Optional[list[dict[str, Any]]] = None
 
     def _detect_format(self) -> DataFormat:
         """Auto-detect format from file extension."""
@@ -94,7 +95,7 @@ class DataProvider:
         else:
             raise ValueError(f"Unsupported file extension: {ext}")
 
-    def load(self) -> List[TestDataRow]:
+    def load(self) -> list[TestDataRow]:
         """
         Load all data from file.
 
@@ -120,9 +121,9 @@ class DataProvider:
             for i, row in enumerate(self._data)
         ]
 
-    def _load_json(self) -> List[Dict[str, Any]]:
+    def _load_json(self) -> list[dict[str, Any]]:
         """Load JSON data file."""
-        with open(self.file_path, "r", encoding="utf-8") as f:
+        with open(self.file_path, encoding="utf-8") as f:
             data = json.load(f)
 
         # Support both array of objects and single object
@@ -134,13 +135,13 @@ class DataProvider:
         else:
             raise ValueError("JSON must be array of objects or single object")
 
-    def _load_csv(self) -> List[Dict[str, Any]]:
+    def _load_csv(self) -> list[dict[str, Any]]:
         """Load CSV data file."""
-        with open(self.file_path, "r", encoding="utf-8") as f:
+        with open(self.file_path, encoding="utf-8") as f:
             reader = csv.DictReader(f)
             return list(reader)
 
-    def _load_xml(self) -> List[Dict[str, Any]]:
+    def _load_xml(self) -> list[dict[str, Any]]:
         """
         Load XML data file.
 
@@ -278,7 +279,7 @@ class DataDrivenTest:
         """
         pass
 
-    def run_all(self) -> Dict[str, Any]:
+    def run_all(self) -> dict[str, Any]:
         """
         Run test for all data rows.
 
@@ -391,14 +392,14 @@ class ConfigManager:
         """
         self.config_file = Path(config_file)
         self.environment = environment
-        self._config: Dict[str, Any] = self._load_config()
+        self._config: dict[str, Any] = self._load_config()
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self) -> dict[str, Any]:
         """Load configuration from file."""
         if not self.config_file.exists():
             raise FileNotFoundError(f"Config file not found: {self.config_file}")
 
-        with open(self.config_file, "r", encoding="utf-8") as f:
+        with open(self.config_file, encoding="utf-8") as f:
             config = json.load(f)
 
         # If environment specified, look for environment-specific overrides
@@ -445,6 +446,6 @@ class ConfigManager:
         """Allow 'in' operator."""
         return self.get(key) is not None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Get entire config as dictionary."""
         return self._config.copy()

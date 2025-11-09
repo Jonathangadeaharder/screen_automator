@@ -6,14 +6,12 @@ Run this to see if your rules and window targeting are working
 
 import os
 import sys
-import threading
 import time
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 from src.context_automator import ContextAwareAutomator
-from src.rule_manager import RuleManager
 from src.window_manager import WindowManager
 
 

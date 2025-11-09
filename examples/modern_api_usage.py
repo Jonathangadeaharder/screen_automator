@@ -21,7 +21,6 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.modern_api import create_framework
-from src.rule_manager import Rule
 
 
 def example_1_basic_usage():
@@ -31,7 +30,7 @@ def example_1_basic_usage():
     print("=" * 70)
 
     # Create framework instance (replaces old ScreenAutomator())
-    framework = create_framework(timeout=10000)
+    create_framework(timeout=10000)
 
     print("\n✨ Modern API Features:")
     print("  - Auto-waiting for images")
@@ -73,7 +72,7 @@ def example_2_expectations():
     print("Example 2: Robust Expectations (Auto-Retry Assertions)")
     print("=" * 70)
 
-    framework = create_framework(timeout=5000)
+    create_framework(timeout=5000)
 
     print("\n🎯 Expectations vs Assertions:")
     print("  OLD: assert automator.find_image('x.png') is not None")
@@ -148,7 +147,7 @@ def example_4_waiting_patterns():
     print("Example 4: Advanced Waiting Patterns")
     print("=" * 70)
 
-    framework = create_framework(timeout=10000)
+    create_framework(timeout=10000)
 
     print("\n🕐 Various Waiting Patterns:")
 

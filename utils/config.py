@@ -3,7 +3,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 def get_config_dir() -> Path:
@@ -17,7 +17,7 @@ def get_config_dir() -> Path:
     return config_dir
 
 
-def load_config(filename: str) -> Dict[str, Any]:
+def load_config(filename: str) -> dict[str, Any]:
     """Load configuration from JSON file."""
     config_path = get_config_dir() / filename
     if config_path.exists():
@@ -28,7 +28,7 @@ def load_config(filename: str) -> Dict[str, Any]:
     return {}
 
 
-def save_config(filename: str, data: Dict[str, Any]) -> None:
+def save_config(filename: str, data: dict[str, Any]) -> None:
     """Save configuration to JSON file."""
     config_path = get_config_dir() / filename
     try:

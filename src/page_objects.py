@@ -20,7 +20,7 @@ Based on the comprehensive improvement blueprint for screen_automator.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 
 class LocatorType(Enum):
@@ -87,9 +87,9 @@ class Element:
         self.locator = locator
         self.automator = automator
         self.parent = parent
-        self._cached_location: Optional[Tuple[int, int]] = None
+        self._cached_location: Optional[tuple[int, int]] = None
 
-    def find(self, timeout: Optional[int] = None) -> Tuple[int, int]:
+    def find(self, timeout: Optional[int] = None) -> tuple[int, int]:
         """
         Find this element and return its location.
 
@@ -102,7 +102,6 @@ class Element:
         Raises:
             TimeoutError: If element not found within timeout
         """
-        timeout_ms = timeout if timeout is not None else self.locator.timeout
 
         if self.locator.type == LocatorType.IMAGE:
             # Use image-based finding
@@ -148,7 +147,7 @@ class Element:
             text: Text to type
             timeout: Override default timeout
         """
-        location = self.find(timeout)
+        self.find(timeout)
 
         # Click to focus first
         self.click(timeout)
@@ -258,7 +257,7 @@ class BasePage:
             automator: The automator instance
         """
         self.automator = automator
-        self._elements: Dict[str, Element] = {}
+        self._elements: dict[str, Element] = {}
 
     def get_element(self, name: str) -> Element:
         """

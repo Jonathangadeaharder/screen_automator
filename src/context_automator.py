@@ -1,8 +1,6 @@
 import os
-import threading
 import time
-from collections import defaultdict
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Optional
 
 try:
     import pyautogui
@@ -12,13 +10,11 @@ except ImportError:
     HAS_PYAUTOGUI = False
     print("Warning: pyautogui not available - cursor position restoration disabled")
 
-import os
 
 # Import centralized logging
 import sys
 
 from .automator import ScreenAutomator
-from .image_detector import ImageDetector
 from .rule_manager import Rule
 from .window_manager import WindowInfo, WindowManager
 
@@ -43,8 +39,8 @@ class ContextAwareAutomator(ScreenAutomator):
         self.keep_context_window_focused = True  # Keep context window in focus after execution
 
         # Cursor position tracking
-        self.original_cursor_pos: Optional[Tuple[int, int]] = None
-        self.context_cursor_pos: Optional[Tuple[int, int]] = None
+        self.original_cursor_pos: Optional[tuple[int, int]] = None
+        self.context_cursor_pos: Optional[tuple[int, int]] = None
 
         # Callbacks for window context events
         self.on_window_context_changed: Optional[
@@ -357,7 +353,7 @@ class ContextAwareAutomator(ScreenAutomator):
                     if window:
                         print(f"✅ Found window by title: {window.title}")
                         print(
-                            f"ℹ️ Note: Title-based targeting is deprecated. Consider using class or process targeting."
+                            "ℹ️ Note: Title-based targeting is deprecated. Consider using class or process targeting."
                         )
                         return window
 
@@ -562,7 +558,7 @@ class ContextAwareAutomator(ScreenAutomator):
                     print(
                         f"⚠️ Could not capture screenshot of window '{self.current_context_window.title}' for rule '{rule.name}'"
                     )
-                    print(f"⚠️ Using full screen hash as fallback for change detection")
+                    print("⚠️ Using full screen hash as fallback for change detection")
                     # Use full screen hash as fallback
                     window_hash = self._get_screen_hash()
                     hash_key = f"screen_fallback_{self.current_context_window.handle}"
@@ -580,7 +576,7 @@ class ContextAwareAutomator(ScreenAutomator):
                 window_name = "entire screen"
 
             if not window_hash:
-                print(f"⚠️ Could not generate hash for window content")
+                print("⚠️ Could not generate hash for window content")
                 return False
 
             if not hasattr(self, "_context_hashes"):
@@ -741,7 +737,7 @@ class ContextAwareAutomator(ScreenAutomator):
 
     # Public methods for manual window selection and testing
 
-    def get_available_windows(self) -> List[WindowInfo]:
+    def get_available_windows(self) -> list[WindowInfo]:
         """Get list of available windows for rule targeting"""
         return self.window_manager.get_running_windows(include_minimized=False)
 
@@ -795,7 +791,7 @@ class ContextAwareAutomator(ScreenAutomator):
         else:
             print("No context to restore")
 
-    def get_cursor_info(self) -> Dict[str, any]:
+    def get_cursor_info(self) -> dict[str, any]:
         """Get current cursor position information"""
         info = {
             "has_pyautogui": HAS_PYAUTOGUI,
@@ -817,7 +813,7 @@ class ContextAwareAutomator(ScreenAutomator):
 
         return info
 
-    def get_debug_info(self) -> Dict[str, any]:
+    def get_debug_info(self) -> dict[str, any]:
         """Get comprehensive debug information"""
         info = {
             "context_aware_active": self.context_execution_active,

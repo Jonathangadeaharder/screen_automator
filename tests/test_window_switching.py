@@ -66,9 +66,9 @@ def test_window_switching():
     success = window_manager.switch_to_window(target_window)
 
     if success:
-        print(f"   ✅ Successfully switched to target window")
+        print("   ✅ Successfully switched to target window")
     else:
-        print(f"   ❌ Failed to switch to target window")
+        print("   ❌ Failed to switch to target window")
 
     # Wait a moment to see the switch
     print("   Waiting 3 seconds to observe window switch...")
@@ -79,9 +79,9 @@ def test_window_switching():
     success = window_manager.restore_original_window()
 
     if success:
-        print(f"   ✅ Successfully restored original window")
+        print("   ✅ Successfully restored original window")
     else:
-        print(f"   ❌ Failed to restore original window")
+        print("   ❌ Failed to restore original window")
 
     print("\n✅ Window switching test completed!")
 

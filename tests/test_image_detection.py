@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 import os
-import sys
 import time
-from typing import Optional
 
 import cv2
 import numpy as np
 
 # Import necessary modules from the project
 from src.image_detector import ImageDetector
-from src.window_manager import WindowInfo, WindowManager
+from src.window_manager import WindowManager
 
 
 def test_window_screenshot_methods():

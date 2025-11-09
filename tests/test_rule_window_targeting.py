@@ -5,7 +5,6 @@ Debug script to test rule window targeting
 
 import os
 import sys
-import time
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))

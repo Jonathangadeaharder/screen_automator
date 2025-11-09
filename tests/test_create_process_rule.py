@@ -6,7 +6,6 @@ This provides more robust window targeting than using titles
 
 import os
 import sys
-import time
 import uuid
 
 # Add src to path
@@ -44,11 +43,11 @@ def create_process_rule():
     rule_manager.rules[rule_id] = rule
     rule_manager.save_rule(rule)
 
-    print(f"✅ Created process-based rule: 'Process-Based Rule'")
-    print(f"   - Targets process: 'python.exe'")
-    print(f"   - Condition: Screen unchanged for 0.1 minutes")
-    print(f"   - Action: Wait 2 seconds")
-    print(f"   - Cluster group: 'python_apps'")
+    print("✅ Created process-based rule: 'Process-Based Rule'")
+    print("   - Targets process: 'python.exe'")
+    print("   - Condition: Screen unchanged for 0.1 minutes")
+    print("   - Action: Wait 2 seconds")
+    print("   - Cluster group: 'python_apps'")
     print("\nThis rule will target any window from the python.exe process.")
     print("This is more robust than targeting by window title.")
 

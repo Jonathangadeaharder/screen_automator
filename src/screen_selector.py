@@ -2,10 +2,7 @@ import time
 import tkinter as tk
 from tkinter import messagebox, simpledialog
 
-import cv2
-import numpy as np
 import pyautogui
-from PIL import Image, ImageTk
 
 try:
     from screeninfo import get_monitors  # type: ignore
@@ -47,7 +44,7 @@ class ScreenSelector:
         if len(self.monitors) > 1:
             choice = simpledialog.askinteger(
                 "Monitor",
-                "Select monitor index (1-{}):".format(len(self.monitors)),
+                f"Select monitor index (1-{len(self.monitors)}):",
                 minvalue=1,
                 maxvalue=len(self.monitors),
             )
@@ -61,7 +58,7 @@ class ScreenSelector:
         m = self.monitors[self.monitor_idx]
 
         # Capture screenshot of that monitor to get width/height (could skip)
-        screenshot = pyautogui.screenshot(region=(m.x, m.y, m.width, m.height))
+        pyautogui.screenshot(region=(m.x, m.y, m.width, m.height))
         self.screen_width = m.width
         self.screen_height = m.height
 

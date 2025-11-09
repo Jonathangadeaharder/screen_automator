@@ -2,8 +2,8 @@ import json
 import os
 import time
 import uuid
-from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, Optional
 
 from .action_executor import Action
 
@@ -13,7 +13,7 @@ class Rule:
     id: str
     name: str
     image_path: str
-    actions: List[Action]
+    actions: list[Action]
     enabled: bool = True
     description: str = ""
     created_ts: int = 0  # unix timestamp
@@ -46,7 +46,7 @@ class Rule:
         0  # Number of times this rule has been executed  # Rules with same cluster_group execute together
     )
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "name": self.name,
@@ -75,7 +75,7 @@ class Rule:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Rule":
+    def from_dict(cls, data: dict[str, Any]) -> "Rule":
         actions = [Action.from_dict(action_data) for action_data in data.get("actions", [])]
         return cls(
             id=data.get("id", str(uuid.uuid4())),
@@ -108,7 +108,7 @@ class Rule:
 class RuleManager:
     def __init__(self, rules_dir: str = "data/rules"):
         self.rules_dir = rules_dir
-        self.rules: Dict[str, Rule] = {}
+        self.rules: dict[str, Rule] = {}
         self._ensure_rules_dir()
         self.load_all_rules()
 
@@ -120,7 +120,7 @@ class RuleManager:
         self,
         name: str,
         image_path: str,
-        actions: List[Action],
+        actions: list[Action],
         description: str = "",
         condition_type: str = "image",
         screen_unchanged_timeout: float = 5.0,
@@ -152,16 +152,16 @@ class RuleManager:
                 return rule
         return None
 
-    def list_rules(self) -> List[Rule]:
+    def list_rules(self) -> list[Rule]:
         """Get all rules"""
         return list(self.rules.values())
 
-    def list_enabled_rules(self) -> List[Rule]:
+    def list_enabled_rules(self) -> list[Rule]:
         """Get all enabled rules, sorted by priority"""
         rules = [rule for rule in self.rules.values() if rule.enabled]
         return sorted(rules, key=lambda r: r.priority)
 
-    def get_rules_by_cluster(self) -> Dict[str, List[Rule]]:
+    def get_rules_by_cluster(self) -> dict[str, list[Rule]]:
         """Group enabled rules by cluster_group for efficient execution"""
         clusters = {}
         enabled_rules = self.list_enabled_rules()
@@ -195,7 +195,7 @@ class RuleManager:
 
     def get_rules_by_window_target(
         self, window_title: str = "", window_process: str = ""
-    ) -> List[Rule]:
+    ) -> list[Rule]:
         """Get rules that target a specific window"""
         enabled_rules = self.list_enabled_rules()
         matching_rules = []
@@ -282,7 +282,7 @@ class RuleManager:
 
             return True
 
-    def list_rules_by_priority(self) -> List[Rule]:
+    def list_rules_by_priority(self) -> list[Rule]:
         """Get all rules sorted by priority"""
         return sorted(self.rules.values(), key=lambda r: r.priority)
 
@@ -310,7 +310,7 @@ class RuleManager:
         if rule_id not in self.rules:
             return False
 
-        rule = self.rules[rule_id]
+        self.rules[rule_id]
         rule_file = os.path.join(self.rules_dir, f"{rule_id}.json")
 
         # Remove from memory
@@ -335,7 +335,7 @@ class RuleManager:
             return None
 
         try:
-            with open(rule_file, "r") as f:
+            with open(rule_file) as f:
                 data = json.load(f)
             rule = Rule.from_dict(data)
             self.rules[rule.id] = rule
@@ -363,7 +363,7 @@ class RuleManager:
     def import_rules(self, filepath: str) -> int:
         """Import rules from a JSON file. Returns number of imported rules."""
         try:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 rules_data = json.load(f)
 
             imported_count = 0
@@ -386,9 +386,9 @@ class RuleManager:
 
     # ------------------------------------------------------------------
     # SA-27 – Conflict detection
-    def detect_conflicts(self) -> List[Tuple[Rule, Rule, str]]:
+    def detect_conflicts(self) -> list[tuple[Rule, Rule, str]]:
         """Return list of conflicts as tuples (rule1, rule2, reason). Only considers enabled rules."""
-        conflicts: List[Tuple[Rule, Rule, str]] = []
+        conflicts: list[tuple[Rule, Rule, str]] = []
         enabled_rules = self.list_enabled_rules()
         n = len(enabled_rules)
 

@@ -2,10 +2,9 @@
 
 import json
 from pathlib import Path
-from typing import Dict, Optional
 
 # Global translation dictionary
-_TRANSL: Dict[str, str] = {}
+_TRANSL: dict[str, str] = {}
 
 
 def load_translations(locale: str = "en") -> None:

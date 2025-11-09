@@ -11,7 +11,7 @@ Based on the comprehensive improvement blueprint for screen_automator.
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Callable, Optional
 
 
 class ActionabilityState(Enum):
@@ -31,7 +31,7 @@ class ActionabilityResult:
     passed: bool
     state: ActionabilityState
     message: str
-    location: Optional[Tuple[int, int]] = None
+    location: Optional[tuple[int, int]] = None
 
 
 class ActionabilityError(Exception):
@@ -123,7 +123,7 @@ class AutoWaiter:
 
     def wait_for_image(
         self, image_path: str, automator: Any, timeout: Optional[int] = None
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         """
         Wait for an image to appear on screen.
 
@@ -157,10 +157,10 @@ class AutoWaiter:
 
     def ensure_stable(
         self,
-        location_getter: Callable[[], Tuple[int, int]],
+        location_getter: Callable[[], tuple[int, int]],
         duration: int = 100,
         tolerance: int = 5,
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         """
         Ensure an element's location is stable (not animating).
 
@@ -216,7 +216,7 @@ class AutoWaiter:
         automator: Any,
         stability_duration: int = 100,
         timeout: Optional[int] = None,
-    ) -> Tuple[int, int]:
+    ) -> tuple[int, int]:
         """
         Wait for an image to appear AND be stable.
 
@@ -250,7 +250,7 @@ class AutoWaiter:
             lambda: automator.find_image(image_path), duration=stability_duration
         )
 
-    def check_actionability(self, location: Tuple[int, int], checks: Optional[list] = None) -> list:
+    def check_actionability(self, location: tuple[int, int], checks: Optional[list] = None) -> list:
         """
         Perform actionability checks on an element.
 
@@ -287,7 +287,7 @@ class AutoWaiter:
         return results
 
     def _perform_check(
-        self, location: Tuple[int, int], check: ActionabilityState
+        self, location: tuple[int, int], check: ActionabilityState
     ) -> ActionabilityResult:
         """
         Perform a single actionability check.

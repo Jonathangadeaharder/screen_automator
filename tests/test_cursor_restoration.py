@@ -60,7 +60,7 @@ def test_cursor_restoration():
         input("\nPress Enter to start the test...")
 
         # Get initial cursor position
-        print(f"📍 Storing current cursor position...")
+        print("📍 Storing current cursor position...")
 
         # Simulate context switching
         success = automator._switch_to_context_window(target_window)

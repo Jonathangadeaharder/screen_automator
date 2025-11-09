@@ -3,7 +3,7 @@ import os
 import threading
 import time
 from types import SimpleNamespace
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Optional
 
 from pynput import mouse
 
@@ -39,7 +39,7 @@ class ScreenAutomator:
         self.stop_execution = False
 
         # Rule execution tracking
-        self.last_rule_execution_time: Dict[str, float] = {}  # Maps rule_id to last execution time
+        self.last_rule_execution_time: dict[str, float] = {}  # Maps rule_id to last execution time
         self.min_rule_interval = 5.0  # Minimum 5 seconds between rule executions
 
         # Action tracking (global action limits removed)
@@ -48,7 +48,7 @@ class ScreenAutomator:
         # Screen unchanged tracking
         self.last_screen_hash: Optional[str] = None
         self.screen_unchanged_start_time: Optional[float] = None
-        self.screen_unchanged_rules: Dict[str, float] = (
+        self.screen_unchanged_rules: dict[str, float] = (
             {}
         )  # Maps rule_id to start time when screen first became unchanged
 
@@ -91,7 +91,6 @@ class ScreenAutomator:
             screenshot = self.image_detector.capture_screen()
             if screenshot is not None:
                 # Convert image to bytes and compute hash
-                import io
 
                 import numpy as np
 
@@ -179,7 +178,7 @@ class ScreenAutomator:
                 image_rules = [r for r in enabled_rules if r.condition_type == "image"]
                 if image_rules:
                     # Pre-group rules by monitor index to minimise captures
-                    rules_by_monitor: Dict[int, List[Rule]] = {}
+                    rules_by_monitor: dict[int, list[Rule]] = {}
                     for r in image_rules:
                         rules_by_monitor.setdefault(r.monitor_idx, []).append(r)
 
@@ -202,7 +201,7 @@ class ScreenAutomator:
             finally:
                 time.sleep(self.check_interval)
 
-    def _check_screen_unchanged_rules(self, rules: List[Rule], current_time: float):
+    def _check_screen_unchanged_rules(self, rules: list[Rule], current_time: float):
         """Check screen unchanged rules"""
         try:
             # Get current screen hash
@@ -246,7 +245,6 @@ class ScreenAutomator:
 
                     # Execute the rule's actions
                     self.executing_actions = True
-                    actions_before = self.actions_executed
                     self.action_executor.execute_actions(
                         rule.actions,
                         stop_condition=lambda: not self._is_mouse_idle() or self.stop_execution,
@@ -277,7 +275,7 @@ class ScreenAutomator:
             print(f"Error checking screen unchanged rules: {e}")
 
     def _process_rules_on_image(
-        self, rules: List[Rule], img, offset_x: int, offset_y: int, current_time: float
+        self, rules: list[Rule], img, offset_x: int, offset_y: int, current_time: float
     ):
         """Evaluate list of rules against provided image captured at offsets."""
         for rule in rules:
@@ -327,7 +325,7 @@ class ScreenAutomator:
                             print(f"Distance: {distance:.2f}, Max allowed: {max_distance:.2f}")
                             is_valid_match = False
                         else:
-                            print(f"Sanity check passed: Match is within expected area")
+                            print("Sanity check passed: Match is within expected area")
 
                     # Double-check with higher confidence and sanity check
                     if self._is_mouse_idle() and is_valid_match:
@@ -409,7 +407,7 @@ class ScreenAutomator:
         # Check if trigger image is on screen
         match = self.image_detector.find_image_on_screen(rule.image_path)
         if not match:
-            print(f"Trigger image not found on screen")
+            print("Trigger image not found on screen")
             return False
 
         print(f"Trigger image found at {match}")

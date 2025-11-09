@@ -1,8 +1,6 @@
 import os
-import platform
 import sys
-import time
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -202,7 +200,6 @@ class TestRuleManagerWindowExtensions:
     @pytest.mark.timeout(30)
     def test_rule_with_window_targeting(self):
         """Test Rule class with window targeting fields"""
-        from src.action_executor import Action, ActionType
 
         actions = [Action(ActionType.CLICK, {"x": 100, "y": 200})]
         rule = Rule(
@@ -224,7 +221,6 @@ class TestRuleManagerWindowExtensions:
     @pytest.mark.timeout(30)
     def test_rule_serialization_with_window_fields(self):
         """Test Rule serialization includes window fields"""
-        from src.action_executor import Action, ActionType
 
         actions = [Action(ActionType.CLICK, {"x": 100, "y": 200})]
         rule = Rule(
@@ -271,7 +267,6 @@ class TestRuleManagerWindowExtensions:
         # Create temporary rules directory
         import tempfile
 
-        from src.action_executor import Action, ActionType
         from src.rule_manager import RuleManager
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -652,7 +647,7 @@ class TestWindowManagementIntegration:
 
             # Find our cluster
             notepad_cluster = None
-            for key, rules in clusters.items():
+            for _key, rules in clusters.items():
                 if any("Notepad" in r.target_window_title for r in rules):
                     notepad_cluster = rules
                     break
