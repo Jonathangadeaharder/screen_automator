@@ -49,7 +49,7 @@ framework.start_monitoring()
 - ✅ Robust expectations (auto-retry assertions)
 - 📦 Page Object Model (maintainable tests)
 - 📊 Data-driven testing (CSV/JSON/XML support)
-- 🔒 Code quality tools (Black, Flake8, mypy, Bandit)
+- 🔒 Code quality tools (Ruff, Pylint, Black, mypy, Bandit)
 - 🔄 CI/CD pipeline (GitHub Actions)
 
 **📖 Documentation:**

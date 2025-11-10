@@ -35,7 +35,15 @@ repos:
       - id: isort
         args: ['--profile', 'black', '--line-length', '100']
 
-  # flake8 - linter
+  # Ruff - ultra-fast Python linter (replaces flake8, isort, pyupgrade, and more)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.15
+    hooks:
+      - id: ruff
+        args: ['--fix', '--exit-non-zero-on-fix']
+      - id: ruff-format
+
+  # flake8 - linter (keeping for additional checks ruff doesn't cover)
   - repo: https://github.com/PyCQA/flake8
     rev: 7.0.0
     hooks:
@@ -45,6 +53,16 @@ repos:
           - flake8-bugbear
           - flake8-comprehensions
         args: ['--config=.flake8']
+
+  # Pylint - comprehensive code analysis
+  - repo: https://github.com/PyCQA/pylint
+    rev: v3.0.3
+    hooks:
+      - id: pylint
+        args: ['--rcfile=pyproject.toml']
+        # Only run on src/ and exclude tests for speed
+        files: ^src/
+        exclude: ^tests/
 
   # mypy - type checker
   - repo: https://github.com/pre-commit/mirrors-mypy

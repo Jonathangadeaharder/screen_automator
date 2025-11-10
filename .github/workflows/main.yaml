@@ -133,9 +133,17 @@ jobs:
         run: poetry run isort . --check-only --profile black --diff
         continue-on-error: false
 
+      - name: Run Ruff (fast linter)
+        run: poetry run ruff check . --output-format=github
+        continue-on-error: false
+
       - name: Run flake8 (linter)
         run: poetry run flake8 .
         continue-on-error: false
+
+      - name: Run Pylint (comprehensive analysis)
+        run: poetry run pylint src/modern_api.py src/actionability.py src/expectations.py src/page_objects.py src/data_driven.py --output-format=colorized
+        continue-on-error: true  # Allow to fail initially, focusing on new modules
 
       - name: Run mypy (type checker)
         run: poetry run mypy src/ gui/ gui_components/ core/ utils/ --config-file pyproject.toml
