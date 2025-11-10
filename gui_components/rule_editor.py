@@ -3,6 +3,7 @@
 import copy
 import os
 import uuid
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
@@ -10,20 +11,23 @@ from ttkbootstrap.tooltip import ToolTip
 
 # Monitor info utilities
 try:
-    from screeninfo import get_monitors  # type: ignore
+    from screeninfo import get_monitors
 except ImportError:  # graceful fallback – assumes single monitor
-    get_monitors = None  # type: ignore
+    get_monitors = None
 
 from core.localization import _
 from src.action_executor import Action
 
 from .record_hud import RecordHUD
 
+if TYPE_CHECKING:
+    from gui_components.protocols import WindowProtocol
+
 
 class RuleEditor(tb.Toplevel):
     """Modal dialog for creating or editing a rule."""
 
-    def __init__(self, master: "MainWindow", rule=None):
+    def __init__(self, master: "WindowProtocol", rule=None):
         super().__init__(master)
         self.title(_("Edit Rule") if rule else _("New Rule"))
         self.geometry("500x600")
@@ -33,8 +37,8 @@ class RuleEditor(tb.Toplevel):
         self.automator = master.automator
 
         # Undo/redo stacks
-        self.undo_stack = []
-        self.redo_stack = []
+        self.undo_stack: list[Any] = []
+        self.redo_stack: list[Any] = []
 
         # Create main content
         frame = tb.Frame(self)
@@ -47,7 +51,7 @@ class RuleEditor(tb.Toplevel):
 
         # Monitor selector
         tb.Label(frame, text=_("Monitor")).grid(row=1, column=0, sticky=W)
-        mon_count = len(get_monitors()) if get_monitors else 1
+        mon_count = len(get_monitors()) if get_monitors is not None else 1
         self._mon_options = ["Any"] + [str(i + 1) for i in range(mon_count)]
         self.var_monitor = tb.StringVar()
         init_idx = getattr(rule, "monitor_idx", -1)
@@ -58,7 +62,7 @@ class RuleEditor(tb.Toplevel):
         self.cmb_monitor.grid(row=1, column=1, sticky=EW, padx=(5, 0))
 
         # Auto-disable options
-        disable_frame = tb.LabelFrame(frame, text=_("Auto-Disable Options"), padding=10)
+        disable_frame = tb.Labelframe(frame, text=_("Auto-Disable Options"), padding=10)
         disable_frame.grid(row=2, column=0, columnspan=2, sticky=NSEW, pady=10)
 
         # Disable after X executions
@@ -86,7 +90,7 @@ class RuleEditor(tb.Toplevel):
         frame.grid_columnconfigure(1, weight=1)
 
         # Trigger image preview
-        img_frame = tb.LabelFrame(frame, text=_("Trigger Image"), padding=10)
+        img_frame = tb.Labelframe(frame, text=_("Trigger Image"), padding=10)
         img_frame.grid(row=3, column=0, columnspan=2, sticky=NSEW, pady=10)
 
         self.image_canvas = tb.Canvas(img_frame, width=300, height=200, background="black")
@@ -111,7 +115,7 @@ class RuleEditor(tb.Toplevel):
                 print(f"Error loading image: {e}")
 
         # Actions
-        actions_frame = tb.LabelFrame(frame, text=_("Actions"), padding=10)
+        actions_frame = tb.Labelframe(frame, text=_("Actions"), padding=10)
         actions_frame.grid(row=4, column=0, columnspan=2, sticky=NSEW, pady=10)
         frame.grid_rowconfigure(4, weight=1)
 
@@ -154,7 +158,7 @@ class RuleEditor(tb.Toplevel):
         self.action_list.bind("<Button-1>", self._on_action_click)
         self.action_list.bind("<B1-Motion>", self._on_action_drag)
         self.action_list.bind("<ButtonRelease-1>", self._on_action_drop)
-        self._drag_data = {"item": None, "index": -1}
+        self._drag_data: dict[str, Union[str, int, None]] = {"item": None, "index": -1}
 
         # Populate actions
         if rule and rule.actions:
@@ -299,7 +303,7 @@ class RuleEditor(tb.Toplevel):
         self._push_undo_state()
 
         # Delete item
-        self.action_list.delete(selected)
+        self.action_list.delete(*selected)
 
     def _record_actions(self) -> None:
         """Open recording HUD to capture actions."""

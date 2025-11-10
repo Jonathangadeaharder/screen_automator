@@ -1,5 +1,6 @@
 """Common dialog components for the Screen Automator GUI."""
 
+from typing import TYPE_CHECKING
 
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
@@ -16,11 +17,14 @@ except ImportError:
 
 from core.localization import _
 
+if TYPE_CHECKING:
+    from gui_components.protocols import WindowProtocol
+
 
 class TipDialog(tb.Toplevel):
     """Simple modal showing a random tip with Next button."""
 
-    def __init__(self, master: "MainWindow", tip: str):
+    def __init__(self, master: "WindowProtocol", tip: str):
         super().__init__(master)
         self.title(_("Tip of the Day"))
         self.resizable(False, False)
@@ -59,7 +63,7 @@ class TipDialog(tb.Toplevel):
 class ConflictsDialog(tb.Toplevel):
     """Dialog showing conflicts between rules."""
 
-    def __init__(self, master: "MainWindow", conflicts):
+    def __init__(self, master: "WindowProtocol", conflicts):
         super().__init__(master)
         self.title(_("Rule Conflicts"))
         self.geometry("500x300")
@@ -110,7 +114,7 @@ class ConflictsDialog(tb.Toplevel):
 class FirstRuleWizard(tb.Toplevel):
     """3-step overlay wizard guiding user through first rule creation."""
 
-    def __init__(self, master: "MainWindow"):
+    def __init__(self, master: "WindowProtocol"):
         super().__init__(master)
         self.title(_("Create Your First Rule"))
         self.geometry("600x400")
@@ -201,7 +205,7 @@ class FirstRuleWizard(tb.Toplevel):
 class PerformanceOverlay(tb.Toplevel):
     """Floating transparent window showing FPS and memory diagnostics."""
 
-    def __init__(self, master: "MainWindow"):
+    def __init__(self, master: "WindowProtocol"):
         super().__init__(master)
         self.master_window = master
         self.overrideredirect(True)

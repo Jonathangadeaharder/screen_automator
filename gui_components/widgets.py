@@ -156,7 +156,7 @@ class StatusIndicator(tb.Frame):
 
     def __init__(self, master, status="ok", size=10, **kwargs):
         super().__init__(master, width=size, height=size, **kwargs)
-        self.size = size
+        self._indicator_size = size
         self.canvas = tk.Canvas(
             self, width=size, height=size, highlightthickness=0, bg=self.cget("background")
         )
@@ -178,8 +178,8 @@ class StatusIndicator(tb.Frame):
 
         # Draw filled circle
         self.canvas.delete("all")
-        x, y = self.size // 2, self.size // 2
-        r = (self.size // 2) - 1
+        x, y = self._indicator_size // 2, self._indicator_size // 2
+        r = (self._indicator_size // 2) - 1
         self.canvas.create_oval(x - r, y - r, x + r, y + r, fill=color, outline="")
 
 
@@ -191,7 +191,7 @@ class KeybindField(tb.Frame):
         self.callback = callback
 
         # Current keybind
-        self.keys = current_keys or []
+        self.key_list = current_keys or []
 
         # Display entry
         self.entry = tb.Entry(self)
@@ -210,11 +210,11 @@ class KeybindField(tb.Frame):
 
     def _update_display(self) -> None:
         """Update the displayed keybind text."""
-        if not self.keys:
+        if not self.key_list:
             self.entry.delete(0, END)
             self.entry.insert(0, _("<Press keys>"))
         else:
-            text = "+".join(self.keys)
+            text = "+".join(self.key_list)
             self.entry.delete(0, END)
             self.entry.insert(0, text)
 
@@ -222,14 +222,14 @@ class KeybindField(tb.Frame):
         """Handle key press events."""
         if not self.recording:
             self.recording = True
-            self.keys = []
+            self.key_list = []
 
         # Get key name
         key = self._normalize_key(event.keysym)
 
         # Add to active keys if not already there
-        if key not in self.keys:
-            self.keys.append(key)
+        if key not in self.key_list:
+            self.key_list.append(key)
 
         self._update_display()
         return "break"  # Prevent default behavior
@@ -239,8 +239,8 @@ class KeybindField(tb.Frame):
         self.recording = False
 
         # Trigger callback with new keybind
-        if self.callback and self.keys:
-            self.callback(self.keys)
+        if self.callback and self.key_list:
+            self.callback(self.key_list)
 
     def _normalize_key(self, key: str) -> str:
         """Normalize key names to standard format."""
@@ -263,12 +263,12 @@ class KeybindField(tb.Frame):
 
     def set_keys(self, keys: list[str]) -> None:
         """Set the keybind externally."""
-        self.keys = keys
+        self.key_list = keys
         self._update_display()
 
     def clear(self) -> None:
         """Clear the current keybind."""
-        self.keys = []
+        self.key_list = []
         self._update_display()
         if self.callback:
             self.callback([])
