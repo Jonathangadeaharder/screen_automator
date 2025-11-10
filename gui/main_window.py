@@ -12,7 +12,7 @@ from ttkbootstrap.constants import *
 from ttkbootstrap.tooltip import ToolTip
 
 from core.localization import _
-from gui_components.dialogs import FirstRuleWizard, PerformanceOverlay, TipDialog
+from gui_components.dialogs import FirstRuleWizard, PerformanceOverlay, TemplateLibraryDialog, TipDialog
 from gui_components.widgets import (
     CollapsiblePane,
     SearchEntry,
@@ -324,25 +324,35 @@ class MainWindow(tb.Window):
 
         tips_btn = tb.Button(
             self.empty_state_frame,
-            text=f'💡 {_("Show Me Examples")}',
-            command=self._show_tip,
+            text=f'📚 {_("Browse Templates")}',
+            command=self._show_template_library,
             width=25
         )
         tips_btn.pack()
 
         # Create treeview for rules
-        columns = ("name", "enabled", "description")
+        columns = ("status", "name", "enabled", "last_run", "description")
         self.rules_tree = tb.Treeview(rules_frame, columns=columns, show="headings", height=15)
 
         # Define headings
+        self.rules_tree.heading("status", text=_("Status"))
         self.rules_tree.heading("name", text=_("Name"))
         self.rules_tree.heading("enabled", text=_("Enabled"))
+        self.rules_tree.heading("last_run", text=_("Last Run"))
         self.rules_tree.heading("description", text=_("Description"))
 
         # Configure column widths
-        self.rules_tree.column("name", width=200)
-        self.rules_tree.column("enabled", width=80)
-        self.rules_tree.column("description", width=300)
+        self.rules_tree.column("status", width=70, anchor=CENTER)
+        self.rules_tree.column("name", width=180)
+        self.rules_tree.column("enabled", width=70, anchor=CENTER)
+        self.rules_tree.column("last_run", width=120)
+        self.rules_tree.column("description", width=250)
+
+        # Configure tags for status colors
+        self.rules_tree.tag_configure('success', foreground='#198754')  # Green
+        self.rules_tree.tag_configure('error', foreground='#dc3545')    # Red
+        self.rules_tree.tag_configure('running', foreground='#0d6efd')  # Blue
+        self.rules_tree.tag_configure('idle', foreground='#6c757d')     # Gray
 
         # Add scrollbar
         scrollbar = tb.Scrollbar(rules_frame, orient=VERTICAL, command=self.rules_tree.yview)
@@ -600,6 +610,17 @@ class MainWindow(tb.Window):
                 details=str(e)
             )
 
+    def _show_template_library(self):
+        """Show template library dialog"""
+        try:
+            TemplateLibraryDialog(self)
+        except Exception as e:
+            self.show_error(
+                title=_("Cannot Open Template Library"),
+                message=_("An error occurred while trying to open the template library."),
+                details=str(e)
+            )
+
     def _toggle_monitor(self):
         """Toggle monitoring on/off"""
         try:
@@ -656,9 +677,55 @@ class MainWindow(tb.Window):
 
             # Populate treeview
             for rule in rules:
-                enabled_text = _("Yes") if rule.enabled else _("No")
+                # Status badge and tag (idle, success, error)
+                status_badge = "⏸ Idle"  # Default
+                status_tag = "idle"
+                if hasattr(rule, 'last_execution_status'):
+                    if rule.last_execution_status == 'success':
+                        status_badge = "✓ Success"
+                        status_tag = "success"
+                    elif rule.last_execution_status == 'error':
+                        status_badge = "❌ Error"
+                        status_tag = "error"
+                    elif rule.last_execution_status == 'running':
+                        status_badge = "▶ Running"
+                        status_tag = "running"
+
+                # Enabled status
+                enabled_text = "✓" if rule.enabled else "○"
+
+                # Last run time
+                last_run_text = _("Never")
+                if hasattr(rule, 'last_execution_time') and rule.last_execution_time:
+                    import datetime
+                    try:
+                        # Try to parse if it's a string
+                        if isinstance(rule.last_execution_time, str):
+                            dt = datetime.datetime.fromisoformat(rule.last_execution_time)
+                        else:
+                            dt = rule.last_execution_time
+
+                        # Format as relative time
+                        now = datetime.datetime.now()
+                        diff = now - dt
+
+                        if diff.days > 0:
+                            last_run_text = _(f"{diff.days}d ago")
+                        elif diff.seconds >= 3600:
+                            hours = diff.seconds // 3600
+                            last_run_text = _(f"{hours}h ago")
+                        elif diff.seconds >= 60:
+                            minutes = diff.seconds // 60
+                            last_run_text = _(f"{minutes}m ago")
+                        else:
+                            last_run_text = _("Just now")
+                    except:
+                        last_run_text = _("Unknown")
+
                 self.rules_tree.insert(
-                    "", "end", iid=rule.id, values=(rule.name, enabled_text, rule.description)
+                    "", "end", iid=rule.id,
+                    values=(status_badge, rule.name, enabled_text, last_run_text, rule.description or ""),
+                    tags=(status_tag,)
                 )
 
             # Show toast with count (only if called explicitly, not on initial load)

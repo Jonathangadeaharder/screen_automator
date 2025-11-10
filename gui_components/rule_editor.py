@@ -152,30 +152,43 @@ class RuleEditor(tb.Toplevel):
         btn_undo.pack(side=RIGHT, padx=2)
         ToolTip(btn_undo, text=_("Undo last change (Ctrl+Z)"))
 
-        # Action list
-        self.action_list = tb.Treeview(
-            actions_frame,
-            columns=("type", "params"),
-            show="headings",
-            selectmode="browse",
-        )
-        self.action_list.heading("type", text=_("Action"))
-        self.action_list.heading("params", text=_("Parameters"))
-        self.action_list.column("type", width=100)
-        self.action_list.column("params", width=300)
-        self.action_list.pack(fill=BOTH, expand=True)
+        # Action list - Card-based layout with visual flow
+        # Create scrollable container
+        self.action_canvas = tb.Canvas(actions_frame, highlightthickness=0)
+        action_scrollbar = tb.Scrollbar(actions_frame, orient="vertical", command=self.action_canvas.yview)
+        self.action_list_frame = tb.Frame(self.action_canvas)
 
-        # Make actionlist reorderable with drag-drop
-        self.action_list.bind("<Button-1>", self._on_action_click)
-        self.action_list.bind("<B1-Motion>", self._on_action_drag)
-        self.action_list.bind("<ButtonRelease-1>", self._on_action_drop)
+        # Configure scrolling
+        self.action_list_frame.bind(
+            "<Configure>",
+            lambda e: self.action_canvas.configure(scrollregion=self.action_canvas.bbox("all"))
+        )
+
+        self.action_canvas_window = self.action_canvas.create_window((0, 0), window=self.action_list_frame, anchor="nw")
+        self.action_canvas.configure(yscrollcommand=action_scrollbar.set)
+
+        # Pack canvas and scrollbar
+        self.action_canvas.pack(side=LEFT, fill=BOTH, expand=True)
+        action_scrollbar.pack(side=RIGHT, fill="y")
+
+        # Resize canvas window to match canvas width
+        self.action_canvas.bind('<Configure>', self._on_canvas_configure)
+
+        # Track action cards and selection
+        self.action_cards: dict[str, tb.Frame] = {}  # action_id -> card frame
+        self.selected_action_id: Optional[str] = None
+
+        # Drag-drop state
         self._drag_data: dict[str, Union[str, int, None]] = {"item": None, "index": -1}
 
         # Add keyboard navigation for accessibility
-        self.action_list.bind("<Control-Up>", self._move_action_up)
-        self.action_list.bind("<Control-Down>", self._move_action_down)
-        self.action_list.bind("<Control-Key-Up>", self._move_action_up)  # Alternative binding
-        self.action_list.bind("<Control-Key-Down>", self._move_action_down)  # Alternative binding
+        self.action_canvas.bind("<Control-Up>", self._move_action_up)
+        self.action_canvas.bind("<Control-Down>", self._move_action_down)
+        self.action_canvas.bind("<Control-Key-Up>", self._move_action_up)  # Alternative binding
+        self.action_canvas.bind("<Control-Key-Down>", self._move_action_down)  # Alternative binding
+
+        # Make canvas focusable for keyboard events
+        self.action_canvas.focus_set()
 
         # Status label for screen reader feedback
         self.status_label = tb.Label(actions_frame, text="", font=("Segoe UI", 9))
@@ -224,11 +237,10 @@ class RuleEditor(tb.Toplevel):
         if not name:
             return
 
-        # Convert actions tree to list
+        # Convert action cards to list
         actions = []
-        for item_id in self.action_list.get_children():
-            act_id = self.action_list.item(item_id, "tags")[0]
-            actions.append(self._action_cache[act_id])
+        for action_id in self.action_cards.keys():
+            actions.append(self._action_cache[action_id])
 
         sel = self.var_monitor.get()
         mon_idx = -1 if sel == "Any" else int(sel) - 1
@@ -259,8 +271,26 @@ class RuleEditor(tb.Toplevel):
 
         self.destroy()
 
+    def _on_canvas_configure(self, event=None) -> None:
+        """Update canvas window width when canvas is resized."""
+        canvas_width = event.width if event else self.action_canvas.winfo_width()
+        self.action_canvas.itemconfig(self.action_canvas_window, width=canvas_width)
+
+    def _get_action_icon(self, action: Action) -> str:
+        """Get emoji icon for action type."""
+        icon_map = {
+            "click": "🖱️",
+            "move": "↔️",
+            "key_press": "⌨️",
+            "type_text": "📝",
+            "wait": "⏱️",
+            "scroll": "📜",
+            "drag": "👆"
+        }
+        return icon_map.get(action.type.value, "⚙️")
+
     def _action_to_text(self, action: Action) -> tuple[str, str]:
-        """Convert an action to displayable text for the treeview."""
+        """Convert an action to displayable text for the card view."""
         type_str = _(action.type.value.replace("_", " ").title())
 
         if action.type.value == "click":
@@ -271,7 +301,9 @@ class RuleEditor(tb.Toplevel):
             key = action.params["key"]
             params_str = key
         elif action.type.value == "type_text":
-            params_str = action.params["text"]
+            text = action.params["text"]
+            # Truncate long text
+            params_str = text if len(text) <= 50 else text[:47] + "..."
         else:
             params_str = str(action.params)
 
@@ -281,34 +313,160 @@ class RuleEditor(tb.Toplevel):
     _action_cache: dict[str, Action] = {}  # Cache actions by UUID
 
     def _add_action_to_list(self, action: Action) -> None:
-        """Add an action to the displayed list."""
+        """Add an action to the displayed card list."""
         action_id = str(uuid.uuid4())
         self._action_cache[action_id] = copy.deepcopy(action)
 
-        type_str, params_str = self._action_to_text(action)
-        self.action_list.insert("", "end", values=(type_str, params_str), tags=(action_id,))
+        # Create action card
+        self._create_action_card(action_id, action)
 
         # Save state for undo
         self._push_undo_state()
 
+    def _create_action_card(self, action_id: str, action: Action) -> None:
+        """Create a visual card for an action."""
+        # Get action text
+        type_str, params_str = self._action_to_text(action)
+        icon = self._get_action_icon(action)
+
+        # Determine if this is the last action
+        existing_cards = list(self.action_cards.keys())
+        is_last = True
+
+        # Add arrow before this card if there are existing cards
+        if existing_cards:
+            arrow_frame = tb.Frame(self.action_list_frame, height=30)
+            arrow_frame.pack(fill=X, pady=0)
+
+            arrow_label = tb.Label(
+                arrow_frame,
+                text="↓",
+                font=("Segoe UI", 20),
+                foreground="#6c757d"
+            )
+            arrow_label.pack()
+
+        # Create card frame
+        card = tb.Frame(
+            self.action_list_frame,
+            padding=10,
+            relief="raised",
+            borderwidth=1
+        )
+        card.pack(fill=X, pady=5, padx=5)
+
+        # Store reference
+        self.action_cards[action_id] = card
+
+        # Header with icon and type
+        header = tb.Frame(card)
+        header.pack(fill=X, pady=(0, 5))
+
+        icon_label = tb.Label(
+            header,
+            text=icon,
+            font=("Segoe UI", 16)
+        )
+        icon_label.pack(side=LEFT, padx=(0, 10))
+
+        type_label = tb.Label(
+            header,
+            text=type_str,
+            font=("Segoe UI", 11, "bold")
+        )
+        type_label.pack(side=LEFT)
+
+        # Position indicator (e.g., "Step 1")
+        position = len(self.action_cards)
+        position_label = tb.Label(
+            header,
+            text=f"Step {position}",
+            font=("Segoe UI", 9),
+            foreground="#6c757d"
+        )
+        position_label.pack(side=RIGHT)
+
+        # Parameters
+        params_label = tb.Label(
+            card,
+            text=params_str,
+            font=("Segoe UI", 10),
+            foreground="#495057",
+            wraplength=400,
+            justify=LEFT
+        )
+        params_label.pack(fill=X)
+
+        # Make card clickable for selection
+        for widget in [card, icon_label, type_label, position_label, params_label]:
+            widget.bind("<Button-1>", lambda e, aid=action_id: self._select_action_card(aid))
+            widget.bind("<Enter>", lambda e, c=card: self._on_card_hover(c, True))
+            widget.bind("<Leave>", lambda e, c=card: self._on_card_hover(c, False))
+
+        # Drag-drop bindings
+        card.bind("<Button-1>", lambda e, aid=action_id: self._on_card_click(e, aid))
+        card.bind("<B1-Motion>", lambda e, aid=action_id: self._on_card_drag(e, aid))
+        card.bind("<ButtonRelease-1>", lambda e: self._on_card_drop(e))
+
+    def _select_action_card(self, action_id: str) -> None:
+        """Select an action card."""
+        # Deselect previous
+        if self.selected_action_id and self.selected_action_id in self.action_cards:
+            old_card = self.action_cards[self.selected_action_id]
+            old_card.configure(relief="raised", borderwidth=1)
+
+        # Select new
+        self.selected_action_id = action_id
+        card = self.action_cards[action_id]
+        card.configure(relief="solid", borderwidth=2)
+
+        # Focus canvas for keyboard events
+        self.action_canvas.focus_set()
+
+    def _on_card_hover(self, card: tb.Frame, entering: bool) -> None:
+        """Handle hover effect on action card."""
+        if entering:
+            # Check if this card is selected
+            is_selected = any(
+                card == self.action_cards[aid]
+                for aid in [self.selected_action_id]
+                if self.selected_action_id
+            )
+            if not is_selected:
+                card.configure(relief="raised", borderwidth=2)
+        else:
+            # Check if this card is selected
+            is_selected = any(
+                card == self.action_cards[aid]
+                for aid in [self.selected_action_id]
+                if self.selected_action_id
+            )
+            if not is_selected:
+                card.configure(relief="raised", borderwidth=1)
+
     def _push_undo_state(self) -> None:
         """Save current state to undo stack."""
         state = []
-        for item_id in self.action_list.get_children():
-            act_id = self.action_list.item(item_id, "tags")[0]
-            state.append(copy.deepcopy(self._action_cache[act_id]))
+        for action_id in self.action_cards.keys():
+            state.append(copy.deepcopy(self._action_cache[action_id]))
         self.undo_stack.append(state)
         self.redo_stack.clear()  # Clear redo stack on new change
 
     def _restore_state(self, state: list[Action]) -> None:
         """Restore action list to a saved state."""
-        # Clear list
-        for item in self.action_list.get_children():
-            self.action_list.delete(item)
+        # Clear all cards
+        for widget in self.action_list_frame.winfo_children():
+            widget.destroy()
+
+        self.action_cards.clear()
+        self._action_cache.clear()
+        self.selected_action_id = None
 
         # Add actions from state
         for action in state:
-            self._add_action_to_list(action)
+            action_id = str(uuid.uuid4())
+            self._action_cache[action_id] = copy.deepcopy(action)
+            self._create_action_card(action_id, action)
 
     def _undo(self) -> None:
         """Undo the last action."""
@@ -336,16 +494,39 @@ class RuleEditor(tb.Toplevel):
         self._restore_state(state)
 
     def _delete_selected(self) -> None:
-        """Delete the selected action."""
-        selected = self.action_list.selection()
-        if not selected:
+        """Delete the selected action card."""
+        if not self.selected_action_id:
+            self.status_label.configure(text=_("No action selected"))
             return
 
         # Save state for undo
         self._push_undo_state()
 
-        # Delete item
-        self.action_list.delete(*selected)
+        # Remove from cache and cards
+        if self.selected_action_id in self._action_cache:
+            del self._action_cache[self.selected_action_id]
+
+        # Rebuild the card list
+        self._rebuild_card_list()
+
+        self.selected_action_id = None
+
+    def _rebuild_card_list(self) -> None:
+        """Rebuild the entire card list from cache."""
+        # Clear all widgets
+        for widget in self.action_list_frame.winfo_children():
+            widget.destroy()
+
+        # Get current order from action_cards
+        ordered_ids = list(self.action_cards.keys())
+
+        # Clear cards dict
+        self.action_cards.clear()
+
+        # Recreate cards
+        for action_id in ordered_ids:
+            if action_id in self._action_cache:
+                self._create_action_card(action_id, self._action_cache[action_id])
 
     def _record_actions(self) -> None:
         """Open recording HUD to capture actions."""
@@ -385,68 +566,89 @@ class RuleEditor(tb.Toplevel):
             self.disable_image_var.set(filepath)
 
     # Drag and drop reordering
-    def _on_action_click(self, event) -> None:
+    def _on_card_click(self, event, action_id: str) -> None:
         """Record initial position for drag start."""
-        item = self.action_list.identify_row(event.y)
-        if not item:
-            return
+        self._select_action_card(action_id)
+        self._drag_data["item"] = action_id
+        ordered_ids = list(self.action_cards.keys())
+        self._drag_data["index"] = ordered_ids.index(action_id)
 
-        self._drag_data["item"] = item
-        children = self.action_list.get_children()
-        self._drag_data["index"] = children.index(item)
-
-    def _on_action_drag(self, event) -> None:
+    def _on_card_drag(self, event, action_id: str) -> None:
         """Visual feedback during drag."""
         pass  # Could add visual indicator here
 
-    def _on_action_drop(self, event) -> None:
-        """Handle drop to reorder items."""
+    def _on_card_drop(self, event) -> None:
+        """Handle drop to reorder cards."""
         if not self._drag_data["item"]:
             return
 
-        # Get drop position
-        target = self.action_list.identify_row(event.y)
-        if not target or target == self._drag_data["item"]:
+        # Find which card we're hovering over
+        widget = event.widget.winfo_containing(event.x_root, event.y_root)
+        if not widget:
+            return
+
+        # Find the card this widget belongs to
+        target_id = None
+        for action_id, card in self.action_cards.items():
+            if widget == card or widget.master == card or self._is_child_of(widget, card):
+                target_id = action_id
+                break
+
+        if not target_id or target_id == self._drag_data["item"]:
+            self._drag_data = {"item": None, "index": -1}
             return
 
         # Get positions
-        src_idx = self._drag_data["index"]
-        children = self.action_list.get_children()
-        try:
-            dst_idx = children.index(target)
-        except ValueError:
-            return
-
-        # Move item
-        item = self._drag_data["item"]
+        src_id = self._drag_data["item"]
+        ordered_ids = list(self.action_cards.keys())
+        src_idx = ordered_ids.index(src_id)
+        dst_idx = ordered_ids.index(target_id)
 
         # Save state for undo
         self._push_undo_state()
 
-        # Perform move
+        # Reorder the action_cards dictionary
+        ordered_ids.remove(src_id)
         if dst_idx < src_idx:  # Moving up
-            self.action_list.move(item, "", dst_idx)
+            ordered_ids.insert(dst_idx, src_id)
         else:  # Moving down
-            self.action_list.move(item, "", dst_idx + 1)
+            ordered_ids.insert(dst_idx, src_id)
+
+        # Rebuild cards in new order
+        new_cards = {}
+        for action_id in ordered_ids:
+            new_cards[action_id] = self.action_cards[action_id]
+        self.action_cards = new_cards
+
+        self._rebuild_card_list()
+
+        # Reselect the moved card
+        self._select_action_card(src_id)
 
         # Clear drag data
         self._drag_data = {"item": None, "index": -1}
 
+    def _is_child_of(self, widget, parent) -> bool:
+        """Check if widget is a child of parent."""
+        while widget:
+            if widget == parent:
+                return True
+            widget = widget.master if hasattr(widget, 'master') else None
+        return False
+
     def _move_action_up(self, event=None) -> str:
         """
-        Move selected action up one position (keyboard accessibility).
+        Move selected action card up one position (keyboard accessibility).
 
         Returns:
             "break" to prevent default handling
         """
-        selection = self.action_list.selection()
-        if not selection:
+        if not self.selected_action_id:
             self.status_label.configure(text=_("No action selected"))
             return "break"
 
-        item = selection[0]
-        children = self.action_list.get_children()
-        idx = children.index(item)
+        ordered_ids = list(self.action_cards.keys())
+        idx = ordered_ids.index(self.selected_action_id)
 
         if idx == 0:
             self.status_label.configure(text=_("Action already at the top"))
@@ -455,13 +657,20 @@ class RuleEditor(tb.Toplevel):
         # Save state for undo
         self._push_undo_state()
 
-        # Move item up
-        self.action_list.move(item, "", idx - 1)
+        # Swap positions
+        ordered_ids[idx], ordered_ids[idx - 1] = ordered_ids[idx - 1], ordered_ids[idx]
 
-        # Keep selection
-        self.action_list.selection_set(item)
-        self.action_list.focus(item)
-        self.action_list.see(item)
+        # Rebuild cards dict in new order
+        new_cards = {}
+        for action_id in ordered_ids:
+            new_cards[action_id] = self.action_cards[action_id]
+        self.action_cards = new_cards
+
+        # Rebuild display
+        self._rebuild_card_list()
+
+        # Reselect
+        self._select_action_card(self.selected_action_id)
 
         # Announce to screen reader
         self.status_label.configure(
@@ -472,34 +681,39 @@ class RuleEditor(tb.Toplevel):
 
     def _move_action_down(self, event=None) -> str:
         """
-        Move selected action down one position (keyboard accessibility).
+        Move selected action card down one position (keyboard accessibility).
 
         Returns:
             "break" to prevent default handling
         """
-        selection = self.action_list.selection()
-        if not selection:
+        if not self.selected_action_id:
             self.status_label.configure(text=_("No action selected"))
             return "break"
 
-        item = selection[0]
-        children = self.action_list.get_children()
-        idx = children.index(item)
+        ordered_ids = list(self.action_cards.keys())
+        idx = ordered_ids.index(self.selected_action_id)
 
-        if idx == len(children) - 1:
+        if idx == len(ordered_ids) - 1:
             self.status_label.configure(text=_("Action already at the bottom"))
             return "break"
 
         # Save state for undo
         self._push_undo_state()
 
-        # Move item down
-        self.action_list.move(item, "", idx + 1)
+        # Swap positions
+        ordered_ids[idx], ordered_ids[idx + 1] = ordered_ids[idx + 1], ordered_ids[idx]
 
-        # Keep selection
-        self.action_list.selection_set(item)
-        self.action_list.focus(item)
-        self.action_list.see(item)
+        # Rebuild cards dict in new order
+        new_cards = {}
+        for action_id in ordered_ids:
+            new_cards[action_id] = self.action_cards[action_id]
+        self.action_cards = new_cards
+
+        # Rebuild display
+        self._rebuild_card_list()
+
+        # Reselect
+        self._select_action_card(self.selected_action_id)
 
         # Announce to screen reader
         self.status_label.configure(
