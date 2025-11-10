@@ -88,6 +88,17 @@ class ImageDetector:
 
         return matches
 
+    def find_image(self, template_path: str) -> Optional[tuple[int, int, int, int]]:
+        """
+        Alias for find_image_on_screen for API compatibility.
+
+        This method exists to support the expectations API which expects
+        a find_image() method on image detection objects.
+
+        Returns (x, y, width, height) of found image or None
+        """
+        return self.find_image_on_screen(template_path)
+
     def wait_for_image(
         self, template_path: str, timeout: float = 10.0, check_interval: float = 0.5
     ) -> Optional[tuple[int, int, int, int]]:

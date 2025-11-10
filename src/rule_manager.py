@@ -141,9 +141,18 @@ class RuleManager:
         self.save_rule(rule)
         return rule
 
+    def add_rule(self, rule: Rule):
+        """Add an existing rule to the manager"""
+        self.rules[rule.id] = rule
+        self.save_rule(rule)
+
     def get_rule(self, rule_id: str) -> Optional[Rule]:
         """Get a rule by ID"""
         return self.rules.get(rule_id)
+
+    def get_all_rules(self) -> list[Rule]:
+        """Get all rules (alias for list_rules for API compatibility)"""
+        return self.list_rules()
 
     def get_rule_by_name(self, name: str) -> Optional[Rule]:
         """Get a rule by name"""
@@ -325,7 +334,7 @@ class RuleManager:
     def save_rule(self, rule: Rule):
         """Save a rule to file"""
         rule_file = os.path.join(self.rules_dir, f"{rule.id}.json")
-        with open(rule_file, "w") as f:
+        with open(rule_file, "w", encoding="utf-8") as f:
             json.dump(rule.to_dict(), f, indent=2)
 
     def load_rule(self, rule_id: str) -> Optional[Rule]:
@@ -335,7 +344,7 @@ class RuleManager:
             return None
 
         try:
-            with open(rule_file) as f:
+            with open(rule_file, encoding="utf-8") as f:
                 data = json.load(f)
             rule = Rule.from_dict(data)
             self.rules[rule.id] = rule
@@ -357,13 +366,13 @@ class RuleManager:
     def export_rules(self, filepath: str):
         """Export all rules to a single JSON file"""
         rules_data = [rule.to_dict() for rule in self.rules.values()]
-        with open(filepath, "w") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(rules_data, f, indent=2)
 
     def import_rules(self, filepath: str) -> int:
         """Import rules from a JSON file. Returns number of imported rules."""
         try:
-            with open(filepath) as f:
+            with open(filepath, encoding="utf-8") as f:
                 rules_data = json.load(f)
 
             imported_count = 0

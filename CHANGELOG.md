@@ -5,6 +5,43 @@ All notable changes to Screen Automator will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-11-10
+
+### 🔧 Improvements - Sprint 1
+
+This patch release focuses on type safety, security hardening, and test coverage improvements.
+
+### Fixed
+
+- **Security Hardening** - Resolved 2 HIGH severity bandit issues
+  - Added `usedforsecurity=False` to MD5 hashing in `src/automator.py` and `src/context_automator.py`
+  - Added explicit `encoding="utf-8"` to all file operations in `src/rule_manager.py`
+
+- **Type Safety Improvements** - Fixed mypy type errors in modern API
+  - Added `find_image()` method to `ImageDetector` for API compatibility with expectations
+  - Added `add_rule()` and `get_all_rules()` methods to `RuleManager`
+  - Implemented Protocol types (`SupportsImageDetection`, `SupportsWindowManagement`) for proper type checking
+  - Added `@overload` signatures to `expect()` function for correct return type inference
+
+- **Module Conflict Resolution**
+  - Resolved duplicate module namespace issue between `gui.py` and `gui/` package
+  - Converted `gui.py` to a minimal launcher that delegates to `gui/` package
+  - Preserved backward compatibility with existing `python gui.py` usage
+
+### Added
+
+- **Comprehensive Test Suite** - `tests/test_modern_api.py`
+  - 34 tests covering all modern API functionality
+  - Tests for factory functions, initialization, monitoring, rules, image operations, expectations, callbacks, and configuration
+  - Integration tests for complete workflows
+  - Proper mocking for headless environment testing
+
+### Changed
+
+- Modern API now passes all mypy type checks with zero errors
+- All security HIGH issues resolved (0 HIGH severity issues remaining)
+- Code quality improvements with ruff and pylint integration
+
 ## [2.0.0] - 2025-11-09
 
 ### 🎉 Major Release - Modern API

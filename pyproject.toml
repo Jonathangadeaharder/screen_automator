@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "screen-automator"
-version = "2.0.0"
+version = "2.0.1"
 description = "A robust, cross-platform GUI automation framework combining image-based and property-based automation"
 authors = ["Screen Automator Contributors"]
 readme = "README.md"

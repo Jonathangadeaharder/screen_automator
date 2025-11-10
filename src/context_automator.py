@@ -533,7 +533,7 @@ class ContextAwareAutomator(ScreenAutomator):
                     # For PIL images
                     img_array = np.array(image)
                     image_bytes = img_array.tobytes()
-                return hashlib.md5(image_bytes).hexdigest()
+                return hashlib.md5(image_bytes, usedforsecurity=False).hexdigest()
         except Exception as e:
             print(f"Error computing image hash: {e}")
         return ""

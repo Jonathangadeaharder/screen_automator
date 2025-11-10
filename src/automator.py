@@ -100,7 +100,7 @@ class ScreenAutomator:
                     # For PIL images
                     img_array = np.array(screenshot)
                     image_bytes = img_array.tobytes()
-                return hashlib.md5(image_bytes).hexdigest()
+                return hashlib.md5(image_bytes, usedforsecurity=False).hexdigest()
         except Exception as e:
             print(f"Error computing screen hash: {e}")
         return ""

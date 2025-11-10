@@ -15,7 +15,7 @@ Based on the comprehensive improvement blueprint for screen_automator.
 
 import time
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any, Callable, Protocol, overload
 
 
 class ExpectationError(AssertionError):
@@ -356,6 +356,39 @@ class StateExpectation(Expectation):
 
         self._retry_until_true(check, f"value to be > {threshold}")
         return self
+
+
+# Protocols for type checking
+class SupportsImageDetection(Protocol):
+    """Protocol for objects that support image detection."""
+
+    def find_image(self, template_path: str) -> Any:
+        """Find an image on screen."""
+        ...
+
+
+class SupportsWindowManagement(Protocol):
+    """Protocol for objects that support window management."""
+
+    def get_windows(self) -> Any:
+        """Get list of windows."""
+        ...
+
+
+# Overloaded signatures for proper type checking
+@overload
+def expect(subject: SupportsImageDetection, timeout: int = 5000) -> ImageExpectation:
+    ...
+
+
+@overload
+def expect(subject: SupportsWindowManagement, timeout: int = 5000) -> WindowExpectation:
+    ...
+
+
+@overload
+def expect(subject: Any, timeout: int = 5000) -> StateExpectation:
+    ...
 
 
 def expect(subject: Any, timeout: int = 5000) -> Expectation:
