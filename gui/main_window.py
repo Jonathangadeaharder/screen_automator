@@ -12,7 +12,12 @@ from ttkbootstrap.constants import *
 from ttkbootstrap.tooltip import ToolTip
 
 from core.localization import _
-from gui_components.dialogs import FirstRuleWizard, PerformanceOverlay, TemplateLibraryDialog, TipDialog
+from gui_components.dialogs import (
+    FirstRuleWizard,
+    PerformanceOverlay,
+    TemplateLibraryDialog,
+    TipDialog,
+)
 from gui_components.widgets import (
     CollapsiblePane,
     SearchEntry,
@@ -75,11 +80,7 @@ class MainWindow(tb.Window):
         icon_label.pack(pady=(0, 10))
 
         message_label = tb.Label(
-            content_frame,
-            text=message,
-            wraplength=450,
-            justify=LEFT,
-            font=("Segoe UI", 11)
+            content_frame, text=message, wraplength=450, justify=LEFT, font=("Segoe UI", 11)
         )
         message_label.pack(pady=(0, 15))
 
@@ -89,10 +90,7 @@ class MainWindow(tb.Window):
             details_pane.pack(fill=X, pady=(0, 15))
 
             details_text = tb.Text(
-                details_pane.content,
-                height=4,
-                wrap=WORD,
-                font=("Courier New", 9)
+                details_pane.content, height=4, wrap=WORD, font=("Courier New", 9)
             )
             details_text.insert("1.0", str(details))
             details_text.configure(state=DISABLED)
@@ -102,11 +100,7 @@ class MainWindow(tb.Window):
         button_frame = tb.Frame(content_frame)
         button_frame.pack(side=BOTTOM, fill=X)
         tb.Button(
-            button_frame,
-            text=_("OK"),
-            command=dialog.destroy,
-            bootstyle=PRIMARY,
-            width=12
+            button_frame, text=_("OK"), command=dialog.destroy, bootstyle=PRIMARY, width=12
         ).pack(side=RIGHT)
 
         # Make modal
@@ -129,13 +123,15 @@ class MainWindow(tb.Window):
             "info": messagebox.showinfo,
             "warning": messagebox.showwarning,
             "success": messagebox.showinfo,
-            "error": messagebox.showerror
+            "error": messagebox.showerror,
         }
 
         show_func = icon_map.get(icon, messagebox.showinfo)
         show_func(title, message)
 
-    def show_toast(self, message, toast_type='info', duration=3000, action_text=None, action_callback=None):
+    def show_toast(
+        self, message, toast_type="info", duration=3000, action_text=None, action_callback=None
+    ):
         """
         Show a toast notification.
 
@@ -150,9 +146,9 @@ class MainWindow(tb.Window):
             self,
             message=message,
             toast_type=toast_type,
-            duration=duration if toast_type != 'error' else None,
+            duration=duration if toast_type != "error" else None,
             action_text=action_text,
-            action_callback=action_callback
+            action_callback=action_callback,
         )
 
     def update_status(self, message):
@@ -174,6 +170,7 @@ class MainWindow(tb.Window):
             Path to rules directory
         """
         from pathlib import Path
+
         return Path("rules")
 
     def get_current_rule(self):
@@ -204,7 +201,9 @@ class MainWindow(tb.Window):
         ToolTip(btn_menu, text=_("Toggle sidebar visibility"))
 
         # New rule
-        btn_new = tb.Button(toolbar, text=f'➕ {_("New")}', bootstyle=PRIMARY, command=self._new_rule)
+        btn_new = tb.Button(
+            toolbar, text=f'➕ {_("New")}', bootstyle=PRIMARY, command=self._new_rule
+        )
         btn_new.pack(side=LEFT, padx=2)
         ToolTip(btn_new, text=_("Create a new automation rule (Ctrl+N)"))
 
@@ -214,12 +213,16 @@ class MainWindow(tb.Window):
         ToolTip(btn_edit, text=_("Edit the selected rule (Ctrl+E)"))
 
         # Delete rule
-        btn_delete = tb.Button(toolbar, text=f'🗑 {_("Delete")}', bootstyle=DANGER, command=self._delete_rule)
+        btn_delete = tb.Button(
+            toolbar, text=f'🗑 {_("Delete")}', bootstyle=DANGER, command=self._delete_rule
+        )
         btn_delete.pack(side=LEFT, padx=2)
         ToolTip(btn_delete, text=_("Delete the selected rule (Delete)"))
 
         # Test rule
-        btn_test = tb.Button(toolbar, text=f'▶ {_("Test")}', bootstyle=SUCCESS, command=self._test_rule)
+        btn_test = tb.Button(
+            toolbar, text=f'▶ {_("Test")}', bootstyle=SUCCESS, command=self._test_rule
+        )
         btn_test.pack(side=LEFT, padx=2)
         ToolTip(btn_test, text=_("Test the selected rule (Ctrl+T)"))
 
@@ -232,7 +235,9 @@ class MainWindow(tb.Window):
         ToolTip(self.btn_conflicts, text=_("View rule conflicts"))
 
         # Settings button
-        btn_settings = tb.Button(toolbar, text=f'⚙️ {_("Settings")}', command=self._open_settings_dialog)
+        btn_settings = tb.Button(
+            toolbar, text=f'⚙️ {_("Settings")}', command=self._open_settings_dialog
+        )
         btn_settings.pack(side=RIGHT, padx=5)
         ToolTip(btn_settings, text=_("Open application settings"))
 
@@ -254,7 +259,9 @@ class MainWindow(tb.Window):
         ToolTip(btn_help, text=_("Open help documentation"))
 
         # Columns button
-        btn_columns = tb.Button(toolbar, text=f'📑 {_("Columns")}', command=self._open_column_dialog)
+        btn_columns = tb.Button(
+            toolbar, text=f'📑 {_("Columns")}', command=self._open_column_dialog
+        )
         btn_columns.pack(side=RIGHT, padx=5)
         ToolTip(btn_columns, text=_("Configure visible columns"))
 
@@ -264,7 +271,9 @@ class MainWindow(tb.Window):
         ToolTip(self.btn_theme, text=_("Switch between light and dark theme"))
 
         # Performance overlay
-        btn_perf = tb.Button(toolbar, text=f'⚡ {_("Performance")}', command=self._toggle_perf_overlay)
+        btn_perf = tb.Button(
+            toolbar, text=f'⚡ {_("Performance")}', command=self._toggle_perf_overlay
+        )
         btn_perf.pack(side=RIGHT, padx=5)
         ToolTip(btn_perf, text=_("Show performance metrics (F12)"))
 
@@ -290,26 +299,22 @@ class MainWindow(tb.Window):
         # Empty state frame (shown when no rules exist)
         self.empty_state_frame = tb.Frame(rules_frame)
 
-        empty_icon = tb.Label(
-            self.empty_state_frame,
-            text="📋",
-            font=("Segoe UI", 48)
-        )
+        empty_icon = tb.Label(self.empty_state_frame, text="📋", font=("Segoe UI", 48))
         empty_icon.pack(pady=(40, 20))
 
         empty_title = tb.Label(
-            self.empty_state_frame,
-            text=_("No Automation Rules Yet"),
-            font=("Segoe UI", 16, "bold")
+            self.empty_state_frame, text=_("No Automation Rules Yet"), font=("Segoe UI", 16, "bold")
         )
         empty_title.pack(pady=(0, 10))
 
         empty_desc = tb.Label(
             self.empty_state_frame,
-            text=_("Create your first rule to automate repetitive tasks.\nRules can click buttons, type text, and perform actions when images appear."),
+            text=_(
+                "Create your first rule to automate repetitive tasks.\nRules can click buttons, type text, and perform actions when images appear."
+            ),
             font=("Segoe UI", 11),
             justify=CENTER,
-            wraplength=400
+            wraplength=400,
         )
         empty_desc.pack(pady=(0, 30))
 
@@ -318,7 +323,7 @@ class MainWindow(tb.Window):
             text=f'➕ {_("Create Your First Rule")}',
             bootstyle=PRIMARY,
             command=self._new_rule,
-            width=25
+            width=25,
         )
         create_btn.pack(pady=(0, 10))
 
@@ -326,7 +331,7 @@ class MainWindow(tb.Window):
             self.empty_state_frame,
             text=f'📚 {_("Browse Templates")}',
             command=self._show_template_library,
-            width=25
+            width=25,
         )
         tips_btn.pack()
 
@@ -349,10 +354,10 @@ class MainWindow(tb.Window):
         self.rules_tree.column("description", width=250)
 
         # Configure tags for status colors
-        self.rules_tree.tag_configure('success', foreground='#198754')  # Green
-        self.rules_tree.tag_configure('error', foreground='#dc3545')    # Red
-        self.rules_tree.tag_configure('running', foreground='#0d6efd')  # Blue
-        self.rules_tree.tag_configure('idle', foreground='#6c757d')     # Gray
+        self.rules_tree.tag_configure("success", foreground="#198754")  # Green
+        self.rules_tree.tag_configure("error", foreground="#dc3545")  # Red
+        self.rules_tree.tag_configure("running", foreground="#0d6efd")  # Blue
+        self.rules_tree.tag_configure("idle", foreground="#6c757d")  # Gray
 
         # Add scrollbar
         scrollbar = tb.Scrollbar(rules_frame, orient=VERTICAL, command=self.rules_tree.yview)
@@ -395,11 +400,14 @@ class MainWindow(tb.Window):
 
         # Show toast with keyboard shortcut info on first launch
         if not self.cfg.get("shortcuts_shown", False):
-            self.after(1000, lambda: self.show_toast(
-                _("Tip: Use Ctrl+N for new rule, Ctrl+E to edit, F1 for help"),
-                toast_type='info',
-                duration=5000
-            ))
+            self.after(
+                1000,
+                lambda: self.show_toast(
+                    _("Tip: Use Ctrl+N for new rule, Ctrl+E to edit, F1 for help"),
+                    toast_type="info",
+                    duration=5000,
+                ),
+            )
             self.cfg["shortcuts_shown"] = True
             save_config("settings.json", self.cfg)
 
@@ -447,7 +455,7 @@ class MainWindow(tb.Window):
             self.show_error(
                 title=_("Cannot Create Rule"),
                 message=_("Unable to open the rule creation wizard. Please try again."),
-                details=str(e)
+                details=str(e),
             )
 
     def _edit_rule(self):
@@ -458,20 +466,20 @@ class MainWindow(tb.Window):
                 self.show_message(
                     title=_("No Rule Selected"),
                     message=_("Please select a rule from the list to edit."),
-                    icon="info"
+                    icon="info",
                 )
                 return
 
             self.show_message(
                 title=_("Feature Not Available"),
                 message=_("Rule editing is not yet implemented. This feature is coming soon!"),
-                icon="info"
+                icon="info",
             )
         except Exception as e:
             self.show_error(
                 title=_("Cannot Edit Rule"),
                 message=_("An error occurred while trying to edit the rule."),
-                details=str(e)
+                details=str(e),
             )
 
     def _delete_rule(self):
@@ -482,20 +490,20 @@ class MainWindow(tb.Window):
                 self.show_message(
                     title=_("No Rule Selected"),
                     message=_("Please select a rule from the list to delete."),
-                    icon="info"
+                    icon="info",
                 )
                 return
 
             self.show_message(
                 title=_("Feature Not Available"),
                 message=_("Rule deletion is not yet implemented. This feature is coming soon!"),
-                icon="info"
+                icon="info",
             )
         except Exception as e:
             self.show_error(
                 title=_("Cannot Delete Rule"),
                 message=_("An error occurred while trying to delete the rule."),
-                details=str(e)
+                details=str(e),
             )
 
     def _test_rule(self):
@@ -506,20 +514,20 @@ class MainWindow(tb.Window):
                 self.show_message(
                     title=_("No Rule Selected"),
                     message=_("Please select a rule from the list to test."),
-                    icon="info"
+                    icon="info",
                 )
                 return
 
             self.show_message(
                 title=_("Feature Not Available"),
                 message=_("Rule testing is not yet implemented. This feature is coming soon!"),
-                icon="info"
+                icon="info",
             )
         except Exception as e:
             self.show_error(
                 title=_("Cannot Test Rule"),
                 message=_("An error occurred while trying to test the rule."),
-                details=str(e)
+                details=str(e),
             )
 
     def _show_conflicts_dialog(self):
@@ -527,14 +535,16 @@ class MainWindow(tb.Window):
         try:
             self.show_message(
                 title=_("Feature Not Available"),
-                message=_("Conflict resolution is not yet implemented. This feature is coming soon!"),
-                icon="info"
+                message=_(
+                    "Conflict resolution is not yet implemented. This feature is coming soon!"
+                ),
+                icon="info",
             )
         except Exception as e:
             self.show_error(
                 title=_("Cannot Show Conflicts"),
                 message=_("An error occurred while trying to show conflicts."),
-                details=str(e)
+                details=str(e),
             )
 
     def _filter_rules(self, query):
@@ -546,7 +556,7 @@ class MainWindow(tb.Window):
             self.show_error(
                 title=_("Cannot Filter Rules"),
                 message=_("An error occurred while filtering the rules list."),
-                details=str(e)
+                details=str(e),
             )
 
     def _toggle_theme(self):
@@ -556,16 +566,16 @@ class MainWindow(tb.Window):
             if "dark" in current_theme:
                 self.style.theme_use("flatly")
                 self.btn_theme.configure(text=f'🌙 {_("Theme")}')
-                self.show_toast(_("Switched to light theme"), toast_type='success', duration=2000)
+                self.show_toast(_("Switched to light theme"), toast_type="success", duration=2000)
             else:
                 self.style.theme_use("darkly")
                 self.btn_theme.configure(text=f'☀️ {_("Theme")}')
-                self.show_toast(_("Switched to dark theme"), toast_type='success', duration=2000)
+                self.show_toast(_("Switched to dark theme"), toast_type="success", duration=2000)
         except Exception as e:
             self.show_error(
                 title=_("Cannot Change Theme"),
                 message=_("An error occurred while switching the theme."),
-                details=str(e)
+                details=str(e),
             )
 
     def _open_column_dialog(self):
@@ -573,14 +583,16 @@ class MainWindow(tb.Window):
         try:
             self.show_message(
                 title=_("Feature Not Available"),
-                message=_("Column configuration is not yet implemented. This feature is coming soon!"),
-                icon="info"
+                message=_(
+                    "Column configuration is not yet implemented. This feature is coming soon!"
+                ),
+                icon="info",
             )
         except Exception as e:
             self.show_error(
                 title=_("Cannot Open Column Dialog"),
                 message=_("An error occurred while trying to open column settings."),
-                details=str(e)
+                details=str(e),
             )
 
     def _show_help(self):
@@ -588,14 +600,16 @@ class MainWindow(tb.Window):
         try:
             self.show_message(
                 title=_("Feature Not Available"),
-                message=_("Help documentation is not yet implemented. This feature is coming soon!"),
-                icon="info"
+                message=_(
+                    "Help documentation is not yet implemented. This feature is coming soon!"
+                ),
+                icon="info",
             )
         except Exception as e:
             self.show_error(
                 title=_("Cannot Show Help"),
                 message=_("An error occurred while trying to show help."),
-                details=str(e)
+                details=str(e),
             )
 
     def _show_tip(self):
@@ -607,7 +621,7 @@ class MainWindow(tb.Window):
             self.show_error(
                 title=_("Cannot Show Tip"),
                 message=_("An error occurred while trying to show the tip dialog."),
-                details=str(e)
+                details=str(e),
             )
 
     def _show_template_library(self):
@@ -618,7 +632,7 @@ class MainWindow(tb.Window):
             self.show_error(
                 title=_("Cannot Open Template Library"),
                 message=_("An error occurred while trying to open the template library."),
-                details=str(e)
+                details=str(e),
             )
 
     def _toggle_monitor(self):
@@ -627,16 +641,16 @@ class MainWindow(tb.Window):
             if self.automator.is_monitoring:
                 self.automator.stop_monitoring()
                 self.btn_toggle_monitor.configure(text=_("Start Monitor"))
-                self.show_toast(_("Monitoring stopped"), toast_type='info', duration=2000)
+                self.show_toast(_("Monitoring stopped"), toast_type="info", duration=2000)
             else:
                 self.automator.start_monitoring()
                 self.btn_toggle_monitor.configure(text=_("Stop Monitor"))
-                self.show_toast(_("Monitoring started"), toast_type='success', duration=2000)
+                self.show_toast(_("Monitoring started"), toast_type="success", duration=2000)
         except Exception as e:
             self.show_error(
                 title=_("Cannot Toggle Monitor"),
                 message=_("An error occurred while starting or stopping the monitor."),
-                details=str(e)
+                details=str(e),
             )
 
     def _open_settings_dialog(self):
@@ -645,13 +659,13 @@ class MainWindow(tb.Window):
             self.show_message(
                 title=_("Feature Not Available"),
                 message=_("Settings dialog is not yet implemented. This feature is coming soon!"),
-                icon="info"
+                icon="info",
             )
         except Exception as e:
             self.show_error(
                 title=_("Cannot Open Settings"),
                 message=_("An error occurred while trying to open settings."),
-                details=str(e)
+                details=str(e),
             )
 
     def refresh_rules(self):
@@ -680,14 +694,14 @@ class MainWindow(tb.Window):
                 # Status badge and tag (idle, success, error)
                 status_badge = "⏸ Idle"  # Default
                 status_tag = "idle"
-                if hasattr(rule, 'last_execution_status'):
-                    if rule.last_execution_status == 'success':
+                if hasattr(rule, "last_execution_status"):
+                    if rule.last_execution_status == "success":
                         status_badge = "✓ Success"
                         status_tag = "success"
-                    elif rule.last_execution_status == 'error':
+                    elif rule.last_execution_status == "error":
                         status_badge = "❌ Error"
                         status_tag = "error"
-                    elif rule.last_execution_status == 'running':
+                    elif rule.last_execution_status == "running":
                         status_badge = "▶ Running"
                         status_tag = "running"
 
@@ -696,8 +710,9 @@ class MainWindow(tb.Window):
 
                 # Last run time
                 last_run_text = _("Never")
-                if hasattr(rule, 'last_execution_time') and rule.last_execution_time:
+                if hasattr(rule, "last_execution_time") and rule.last_execution_time:
                     import datetime
+
                     try:
                         # Try to parse if it's a string
                         if isinstance(rule.last_execution_time, str):
@@ -723,17 +738,27 @@ class MainWindow(tb.Window):
                         last_run_text = _("Unknown")
 
                 self.rules_tree.insert(
-                    "", "end", iid=rule.id,
-                    values=(status_badge, rule.name, enabled_text, last_run_text, rule.description or ""),
-                    tags=(status_tag,)
+                    "",
+                    "end",
+                    iid=rule.id,
+                    values=(
+                        status_badge,
+                        rule.name,
+                        enabled_text,
+                        last_run_text,
+                        rule.description or "",
+                    ),
+                    tags=(status_tag,),
                 )
 
             # Show toast with count (only if called explicitly, not on initial load)
-            if hasattr(self, '_initial_load_done'):
+            if hasattr(self, "_initial_load_done"):
                 if len(rules) == 0:
-                    self.show_toast(_("No rules found"), toast_type='info', duration=2000)
+                    self.show_toast(_("No rules found"), toast_type="info", duration=2000)
                 else:
-                    self.show_toast(_(f"Loaded {len(rules)} rule(s)"), toast_type='success', duration=2000)
+                    self.show_toast(
+                        _(f"Loaded {len(rules)} rule(s)"), toast_type="success", duration=2000
+                    )
             else:
                 self._initial_load_done = True
 
@@ -741,7 +766,7 @@ class MainWindow(tb.Window):
             self.show_error(
                 title=_("Cannot Refresh Rules"),
                 message=_("An error occurred while loading the rules list."),
-                details=str(e)
+                details=str(e),
             )
 
     def _on_close(self):

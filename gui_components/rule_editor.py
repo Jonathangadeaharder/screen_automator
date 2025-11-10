@@ -62,7 +62,9 @@ class RuleEditor(tb.Toplevel):
             frame, values=self._mon_options, state="readonly", textvariable=self.var_monitor
         )
         self.cmb_monitor.grid(row=1, column=1, sticky=EW, padx=(5, 0))
-        ToolTip(self.cmb_monitor, text=_("Select which monitor to watch (or 'Any' for all monitors)"))
+        ToolTip(
+            self.cmb_monitor, text=_("Select which monitor to watch (or 'Any' for all monitors)")
+        )
 
         # Auto-disable options
         disable_frame = tb.Labelframe(frame, text=_("Auto-Disable Options"), padding=10)
@@ -127,7 +129,9 @@ class RuleEditor(tb.Toplevel):
         action_toolbar.pack(fill=X, pady=(0, 10))
 
         # Left side - Add actions
-        btn_record = tb.Button(action_toolbar, text=f"+ {_('Record')}", command=self._record_actions)
+        btn_record = tb.Button(
+            action_toolbar, text=f"+ {_('Record')}", command=self._record_actions
+        )
         btn_record.pack(side=LEFT, padx=2)
         ToolTip(btn_record, text=_("Record actions by clicking on screen"))
 
@@ -140,7 +144,9 @@ class RuleEditor(tb.Toplevel):
         ToolTip(btn_type, text=_("Add a text typing action"))
 
         # Right side - Edit actions
-        btn_delete = tb.Button(action_toolbar, text=f"🗑 {_('Delete')}", command=self._delete_selected)
+        btn_delete = tb.Button(
+            action_toolbar, text=f"🗑 {_('Delete')}", command=self._delete_selected
+        )
         btn_delete.pack(side=RIGHT, padx=2)
         ToolTip(btn_delete, text=_("Delete selected action (Delete key)"))
 
@@ -155,16 +161,20 @@ class RuleEditor(tb.Toplevel):
         # Action list - Card-based layout with visual flow
         # Create scrollable container
         self.action_canvas = tb.Canvas(actions_frame, highlightthickness=0)
-        action_scrollbar = tb.Scrollbar(actions_frame, orient="vertical", command=self.action_canvas.yview)
+        action_scrollbar = tb.Scrollbar(
+            actions_frame, orient="vertical", command=self.action_canvas.yview
+        )
         self.action_list_frame = tb.Frame(self.action_canvas)
 
         # Configure scrolling
         self.action_list_frame.bind(
             "<Configure>",
-            lambda e: self.action_canvas.configure(scrollregion=self.action_canvas.bbox("all"))
+            lambda e: self.action_canvas.configure(scrollregion=self.action_canvas.bbox("all")),
         )
 
-        self.action_canvas_window = self.action_canvas.create_window((0, 0), window=self.action_list_frame, anchor="nw")
+        self.action_canvas_window = self.action_canvas.create_window(
+            (0, 0), window=self.action_list_frame, anchor="nw"
+        )
         self.action_canvas.configure(yscrollcommand=action_scrollbar.set)
 
         # Pack canvas and scrollbar
@@ -172,7 +182,7 @@ class RuleEditor(tb.Toplevel):
         action_scrollbar.pack(side=RIGHT, fill="y")
 
         # Resize canvas window to match canvas width
-        self.action_canvas.bind('<Configure>', self._on_canvas_configure)
+        self.action_canvas.bind("<Configure>", self._on_canvas_configure)
 
         # Track action cards and selection
         self.action_cards: dict[str, tb.Frame] = {}  # action_id -> card frame
@@ -226,7 +236,9 @@ class RuleEditor(tb.Toplevel):
         self.bind_all("<Control-Y>", lambda e: self._redo())
 
         # Delete shortcut for actions
-        self.bind_all("<Delete>", lambda e: self._delete_selected() if self.action_list.focus() else None)
+        self.bind_all(
+            "<Delete>", lambda e: self._delete_selected() if self.action_list.focus() else None
+        )
 
         # Escape to cancel
         self.bind_all("<Escape>", lambda e: self.destroy())
@@ -285,7 +297,7 @@ class RuleEditor(tb.Toplevel):
             "type_text": "📝",
             "wait": "⏱️",
             "scroll": "📜",
-            "drag": "👆"
+            "drag": "👆",
         }
         return icon_map.get(action.type.value, "⚙️")
 
@@ -329,30 +341,19 @@ class RuleEditor(tb.Toplevel):
         type_str, params_str = self._action_to_text(action)
         icon = self._get_action_icon(action)
 
-        # Determine if this is the last action
-        existing_cards = list(self.action_cards.keys())
-        is_last = True
-
         # Add arrow before this card if there are existing cards
+        existing_cards = list(self.action_cards.keys())
         if existing_cards:
             arrow_frame = tb.Frame(self.action_list_frame, height=30)
             arrow_frame.pack(fill=X, pady=0)
 
             arrow_label = tb.Label(
-                arrow_frame,
-                text="↓",
-                font=("Segoe UI", 20),
-                foreground="#6c757d"
+                arrow_frame, text="↓", font=("Segoe UI", 20), foreground="#6c757d"
             )
             arrow_label.pack()
 
         # Create card frame
-        card = tb.Frame(
-            self.action_list_frame,
-            padding=10,
-            relief="raised",
-            borderwidth=1
-        )
+        card = tb.Frame(self.action_list_frame, padding=10, relief="raised", borderwidth=1)
         card.pack(fill=X, pady=5, padx=5)
 
         # Store reference
@@ -362,27 +363,16 @@ class RuleEditor(tb.Toplevel):
         header = tb.Frame(card)
         header.pack(fill=X, pady=(0, 5))
 
-        icon_label = tb.Label(
-            header,
-            text=icon,
-            font=("Segoe UI", 16)
-        )
+        icon_label = tb.Label(header, text=icon, font=("Segoe UI", 16))
         icon_label.pack(side=LEFT, padx=(0, 10))
 
-        type_label = tb.Label(
-            header,
-            text=type_str,
-            font=("Segoe UI", 11, "bold")
-        )
+        type_label = tb.Label(header, text=type_str, font=("Segoe UI", 11, "bold"))
         type_label.pack(side=LEFT)
 
         # Position indicator (e.g., "Step 1")
         position = len(self.action_cards)
         position_label = tb.Label(
-            header,
-            text=f"Step {position}",
-            font=("Segoe UI", 9),
-            foreground="#6c757d"
+            header, text=f"Step {position}", font=("Segoe UI", 9), foreground="#6c757d"
         )
         position_label.pack(side=RIGHT)
 
@@ -393,7 +383,7 @@ class RuleEditor(tb.Toplevel):
             font=("Segoe UI", 10),
             foreground="#495057",
             wraplength=400,
-            justify=LEFT
+            justify=LEFT,
         )
         params_label.pack(fill=X)
 
@@ -600,6 +590,9 @@ class RuleEditor(tb.Toplevel):
 
         # Get positions
         src_id = self._drag_data["item"]
+        if not isinstance(src_id, str):
+            return
+
         ordered_ids = list(self.action_cards.keys())
         src_idx = ordered_ids.index(src_id)
         dst_idx = ordered_ids.index(target_id)
@@ -633,7 +626,7 @@ class RuleEditor(tb.Toplevel):
         while widget:
             if widget == parent:
                 return True
-            widget = widget.master if hasattr(widget, 'master') else None
+            widget = widget.master if hasattr(widget, "master") else None
         return False
 
     def _move_action_up(self, event=None) -> str:
@@ -673,9 +666,7 @@ class RuleEditor(tb.Toplevel):
         self._select_action_card(self.selected_action_id)
 
         # Announce to screen reader
-        self.status_label.configure(
-            text=_("Moved action up to position {}").format(idx)
-        )
+        self.status_label.configure(text=_("Moved action up to position {}").format(idx))
 
         return "break"  # Prevent default key handling
 
@@ -716,8 +707,6 @@ class RuleEditor(tb.Toplevel):
         self._select_action_card(self.selected_action_id)
 
         # Announce to screen reader
-        self.status_label.configure(
-            text=_("Moved action down to position {}").format(idx + 2)
-        )
+        self.status_label.configure(text=_("Moved action down to position {}").format(idx + 2))
 
         return "break"  # Prevent default key handling
