@@ -1,11 +1,193 @@
 """Custom widget components for Screen Automator GUI."""
 
 import tkinter as tk
+from typing import Callable, Optional
 
 import ttkbootstrap as tb
-from ttkbootstrap.constants import BOTH, END, LEFT, PRIMARY, X
+from ttkbootstrap.constants import BOTH, BOTTOM, END, LEFT, PRIMARY, RIGHT, TOP, X
 
 from core.localization import _
+
+
+class ToastNotification(tb.Toplevel):
+    """
+    Non-modal toast notification that appears in top-right corner.
+
+    Features:
+    - Slides in from right with animation
+    - Auto-dismisses after duration (except errors)
+    - Stacks multiple toasts vertically
+    - Optional action button
+    - Different styles for success/info/warning/error
+    """
+
+    # Class variable to track active toasts
+    _active_toasts: list['ToastNotification'] = []
+    _toast_offset = 20  # Starting Y position from top
+
+    def __init__(
+        self,
+        parent,
+        message: str,
+        toast_type: str = 'info',
+        duration: Optional[int] = 3000,
+        action_text: Optional[str] = None,
+        action_callback: Optional[Callable] = None,
+        **kwargs
+    ):
+        super().__init__(parent, **kwargs)
+
+        self.message = message
+        self.toast_type = toast_type
+        self.duration = duration
+        self.action_callback = action_callback
+
+        # Configure window
+        self.overrideredirect(True)  # Remove window decorations
+        self.attributes('-topmost', True)  # Always on top
+
+        # Style configuration
+        self.styles = {
+            'success': {
+                'bg': '#d4edda',
+                'fg': '#155724',
+                'icon': '✓',
+                'bootstyle': 'success'
+            },
+            'info': {
+                'bg': '#d1ecf1',
+                'fg': '#0c5460',
+                'icon': 'ℹ',
+                'bootstyle': 'info'
+            },
+            'warning': {
+                'bg': '#fff3cd',
+                'fg': '#856404',
+                'icon': '⚠',
+                'bootstyle': 'warning'
+            },
+            'error': {
+                'bg': '#f8d7da',
+                'fg': '#721c24',
+                'icon': '❌',
+                'bootstyle': 'danger'
+            }
+        }
+
+        style = self.styles.get(toast_type, self.styles['info'])
+
+        # Main frame
+        frame = tb.Frame(
+            self,
+            padding=15,
+            bootstyle=style['bootstyle']
+        )
+        frame.pack(fill=BOTH, expand=True)
+
+        # Content frame (icon + message)
+        content_frame = tb.Frame(frame, bootstyle=style['bootstyle'])
+        content_frame.pack(side=LEFT, fill=BOTH, expand=True)
+
+        # Icon
+        icon_label = tb.Label(
+            content_frame,
+            text=style['icon'],
+            font=("Segoe UI", 16),
+            bootstyle=style['bootstyle']
+        )
+        icon_label.pack(side=LEFT, padx=(0, 10))
+
+        # Message
+        message_label = tb.Label(
+            content_frame,
+            text=message,
+            wraplength=300,
+            justify=LEFT,
+            font=("Segoe UI", 10),
+            bootstyle=style['bootstyle']
+        )
+        message_label.pack(side=LEFT, fill=BOTH, expand=True)
+
+        # Action button (optional)
+        if action_text and action_callback:
+            action_btn = tb.Button(
+                frame,
+                text=action_text,
+                command=self._on_action,
+                bootstyle=f"{style['bootstyle']}-outline",
+                width=10
+            )
+            action_btn.pack(side=RIGHT, padx=(10, 0))
+
+        # Close button
+        close_btn = tb.Label(
+            frame,
+            text="✕",
+            cursor="hand2",
+            font=("Segoe UI", 12),
+            bootstyle=style['bootstyle']
+        )
+        close_btn.pack(side=RIGHT, padx=(10, 0))
+        close_btn.bind("<Button-1>", lambda e: self.dismiss())
+
+        # Size and position
+        self.update_idletasks()
+        width = 400
+        height = self.winfo_reqheight()
+
+        # Calculate position (stack if multiple toasts)
+        screen_width = self.winfo_screenwidth()
+        x = screen_width - width - 20  # 20px from right edge
+
+        # Stack vertically with other toasts
+        y = self._toast_offset
+        for toast in self._active_toasts:
+            if toast.winfo_exists():
+                y += toast.winfo_height() + 10
+
+        self.geometry(f"{width}x{height}+{x}+{y}")
+
+        # Add to active toasts
+        self._active_toasts.append(self)
+
+        # Auto-dismiss (except for errors)
+        if duration and toast_type != 'error':
+            self.after(duration, self.dismiss)
+
+    def _on_action(self):
+        """Handle action button click."""
+        if self.action_callback:
+            self.action_callback()
+        self.dismiss()
+
+    def dismiss(self):
+        """Dismiss the toast with fade-out animation."""
+        if self in self._active_toasts:
+            self._active_toasts.remove(self)
+
+        # Reposition remaining toasts
+        self._reposition_toasts()
+
+        # Destroy window
+        try:
+            self.destroy()
+        except:
+            pass
+
+    @classmethod
+    def _reposition_toasts(cls):
+        """Reposition all active toasts after one is dismissed."""
+        y = cls._toast_offset
+        for toast in cls._active_toasts:
+            if toast.winfo_exists():
+                # Get current position
+                geometry = toast.geometry()
+                parts = geometry.split('+')
+                x = parts[1]
+
+                # Update Y position
+                toast.geometry(f"+{x}+{y}")
+                y += toast.winfo_height() + 10
 
 
 class ColorBox(tb.Frame):

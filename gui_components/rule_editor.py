@@ -193,9 +193,30 @@ class RuleEditor(tb.Toplevel):
         tb.Button(btn_frame, text=_("Cancel"), command=self.destroy).pack(side=LEFT)
         tb.Button(btn_frame, text=_("Save"), bootstyle=PRIMARY, command=self._save).pack(side=RIGHT)
 
+        # Setup keyboard shortcuts
+        self._setup_keyboard_shortcuts()
+
         # Modal
         self.transient(master)
         self.grab_set()
+
+    def _setup_keyboard_shortcuts(self):
+        """Setup keyboard shortcuts for the rule editor."""
+        # Save shortcut
+        self.bind_all("<Control-s>", lambda e: self._save())
+        self.bind_all("<Control-S>", lambda e: self._save())
+
+        # Undo/Redo shortcuts
+        self.bind_all("<Control-z>", lambda e: self._undo())
+        self.bind_all("<Control-Z>", lambda e: self._undo())
+        self.bind_all("<Control-y>", lambda e: self._redo())
+        self.bind_all("<Control-Y>", lambda e: self._redo())
+
+        # Delete shortcut for actions
+        self.bind_all("<Delete>", lambda e: self._delete_selected() if self.action_list.focus() else None)
+
+        # Escape to cancel
+        self.bind_all("<Escape>", lambda e: self.destroy())
 
     def _save(self):
         """Save the rule and close the dialog."""

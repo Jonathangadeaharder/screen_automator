@@ -16,6 +16,7 @@ from gui_components.dialogs import FirstRuleWizard, PerformanceOverlay, TipDialo
 from gui_components.widgets import (
     CollapsiblePane,
     SearchEntry,
+    ToastNotification,
 )
 from src.automator import ScreenAutomator
 from utils import load_config, save_config
@@ -40,6 +41,7 @@ class MainWindow(tb.Window):
         self._build_toolbar()
         self._build_panes()
         self._build_status_bar()
+        self._setup_keyboard_shortcuts()
         self.refresh_rules()
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.notifier = None
@@ -132,6 +134,26 @@ class MainWindow(tb.Window):
 
         show_func = icon_map.get(icon, messagebox.showinfo)
         show_func(title, message)
+
+    def show_toast(self, message, toast_type='info', duration=3000, action_text=None, action_callback=None):
+        """
+        Show a toast notification.
+
+        Args:
+            message: Message to display
+            toast_type: Type of toast ('success', 'info', 'warning', 'error')
+            duration: Auto-dismiss duration in ms (None for manual dismiss, 0 for errors)
+            action_text: Optional action button text
+            action_callback: Optional action button callback
+        """
+        ToastNotification(
+            self,
+            message=message,
+            toast_type=toast_type,
+            duration=duration if toast_type != 'error' else None,
+            action_text=action_text,
+            action_callback=action_callback
+        )
 
     def update_status(self, message):
         """
@@ -265,6 +287,49 @@ class MainWindow(tb.Window):
         rules_frame = tb.LabelFrame(self.main_container, text=_("Rules"), padding=10)
         rules_frame.pack(fill=BOTH, expand=True, padx=5, pady=5)
 
+        # Empty state frame (shown when no rules exist)
+        self.empty_state_frame = tb.Frame(rules_frame)
+
+        empty_icon = tb.Label(
+            self.empty_state_frame,
+            text="📋",
+            font=("Segoe UI", 48)
+        )
+        empty_icon.pack(pady=(40, 20))
+
+        empty_title = tb.Label(
+            self.empty_state_frame,
+            text=_("No Automation Rules Yet"),
+            font=("Segoe UI", 16, "bold")
+        )
+        empty_title.pack(pady=(0, 10))
+
+        empty_desc = tb.Label(
+            self.empty_state_frame,
+            text=_("Create your first rule to automate repetitive tasks.\nRules can click buttons, type text, and perform actions when images appear."),
+            font=("Segoe UI", 11),
+            justify=CENTER,
+            wraplength=400
+        )
+        empty_desc.pack(pady=(0, 30))
+
+        create_btn = tb.Button(
+            self.empty_state_frame,
+            text=f'➕ {_("Create Your First Rule")}',
+            bootstyle=PRIMARY,
+            command=self._new_rule,
+            width=25
+        )
+        create_btn.pack(pady=(0, 10))
+
+        tips_btn = tb.Button(
+            self.empty_state_frame,
+            text=f'💡 {_("Show Me Examples")}',
+            command=self._show_tip,
+            width=25
+        )
+        tips_btn.pack()
+
         # Create treeview for rules
         columns = ("name", "enabled", "description")
         self.rules_tree = tb.Treeview(rules_frame, columns=columns, show="headings", height=15)
@@ -297,6 +362,36 @@ class MainWindow(tb.Window):
         self.mem_bar.pack(side=LEFT, padx=5)
         self.lbl_mem = tb.Label(bar, text=_("Mem: -- MB"))
         self.lbl_mem.pack(side=LEFT, padx=5)
+
+    def _setup_keyboard_shortcuts(self):
+        """Setup global keyboard shortcuts for the application."""
+        # Rule management shortcuts
+        self.bind_all("<Control-n>", lambda e: self._new_rule())
+        self.bind_all("<Control-N>", lambda e: self._new_rule())
+        self.bind_all("<Control-e>", lambda e: self._edit_rule())
+        self.bind_all("<Control-E>", lambda e: self._edit_rule())
+        self.bind_all("<Delete>", lambda e: self._delete_rule())
+        self.bind_all("<Control-t>", lambda e: self._test_rule())
+        self.bind_all("<Control-T>", lambda e: self._test_rule())
+
+        # Utility shortcuts
+        self.bind_all("<F1>", lambda e: self._show_tip())
+        self.bind_all("<F12>", lambda e: self._toggle_perf_overlay())
+        self.bind_all("<Control-q>", lambda e: self._on_close())
+        self.bind_all("<Control-Q>", lambda e: self._on_close())
+
+        # Refresh shortcut
+        self.bind_all("<F5>", lambda e: self.refresh_rules())
+
+        # Show toast with keyboard shortcut info on first launch
+        if not self.cfg.get("shortcuts_shown", False):
+            self.after(1000, lambda: self.show_toast(
+                _("Tip: Use Ctrl+N for new rule, Ctrl+E to edit, F1 for help"),
+                toast_type='info',
+                duration=5000
+            ))
+            self.cfg["shortcuts_shown"] = True
+            save_config("settings.json", self.cfg)
 
     def _increase_frame(self):
         self._frame_count += 1
@@ -451,9 +546,11 @@ class MainWindow(tb.Window):
             if "dark" in current_theme:
                 self.style.theme_use("flatly")
                 self.btn_theme.configure(text=f'🌙 {_("Theme")}')
+                self.show_toast(_("Switched to light theme"), toast_type='success', duration=2000)
             else:
                 self.style.theme_use("darkly")
                 self.btn_theme.configure(text=f'☀️ {_("Theme")}')
+                self.show_toast(_("Switched to dark theme"), toast_type='success', duration=2000)
         except Exception as e:
             self.show_error(
                 title=_("Cannot Change Theme"),
@@ -509,11 +606,11 @@ class MainWindow(tb.Window):
             if self.automator.is_monitoring:
                 self.automator.stop_monitoring()
                 self.btn_toggle_monitor.configure(text=_("Start Monitor"))
-                self.update_status(_("Monitoring stopped"))
+                self.show_toast(_("Monitoring stopped"), toast_type='info', duration=2000)
             else:
                 self.automator.start_monitoring()
                 self.btn_toggle_monitor.configure(text=_("Stop Monitor"))
-                self.update_status(_("Monitoring started"))
+                self.show_toast(_("Monitoring started"), toast_type='success', duration=2000)
         except Exception as e:
             self.show_error(
                 title=_("Cannot Toggle Monitor"),
@@ -546,6 +643,17 @@ class MainWindow(tb.Window):
             # Load rules from rule manager
             rules = self.automator.rule_manager.list_rules()
 
+            # Show/hide empty state based on rule count
+            if len(rules) == 0:
+                # Show empty state
+                self.empty_state_frame.pack(fill=BOTH, expand=True)
+                self.rules_tree.pack_forget()
+            else:
+                # Show rules list
+                self.empty_state_frame.pack_forget()
+                if not self.rules_tree.winfo_ismapped():
+                    self.rules_tree.pack(side=LEFT, fill=BOTH, expand=True)
+
             # Populate treeview
             for rule in rules:
                 enabled_text = _("Yes") if rule.enabled else _("No")
@@ -553,7 +661,14 @@ class MainWindow(tb.Window):
                     "", "end", iid=rule.id, values=(rule.name, enabled_text, rule.description)
                 )
 
-            self.update_status(_(f"Loaded {len(rules)} rules"))
+            # Show toast with count (only if called explicitly, not on initial load)
+            if hasattr(self, '_initial_load_done'):
+                if len(rules) == 0:
+                    self.show_toast(_("No rules found"), toast_type='info', duration=2000)
+                else:
+                    self.show_toast(_(f"Loaded {len(rules)} rule(s)"), toast_type='success', duration=2000)
+            else:
+                self._initial_load_done = True
 
         except Exception as e:
             self.show_error(
