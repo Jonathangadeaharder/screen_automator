@@ -47,7 +47,9 @@ class RuleEditor(tb.Toplevel):
         # Name field
         tb.Label(frame, text=_("Name")).grid(row=0, column=0, sticky=W)
         self.name_var = tb.StringVar(value=rule.name if rule else "")
-        tb.Entry(frame, textvariable=self.name_var).grid(row=0, column=1, sticky=EW, padx=(5, 0))
+        name_entry = tb.Entry(frame, textvariable=self.name_var)
+        name_entry.grid(row=0, column=1, sticky=EW, padx=(5, 0))
+        ToolTip(name_entry, text=_("Enter a descriptive name for this rule"))
 
         # Monitor selector
         tb.Label(frame, text=_("Monitor")).grid(row=1, column=0, sticky=W)
@@ -60,6 +62,7 @@ class RuleEditor(tb.Toplevel):
             frame, values=self._mon_options, state="readonly", textvariable=self.var_monitor
         )
         self.cmb_monitor.grid(row=1, column=1, sticky=EW, padx=(5, 0))
+        ToolTip(self.cmb_monitor, text=_("Select which monitor to watch (or 'Any' for all monitors)"))
 
         # Auto-disable options
         disable_frame = tb.Labelframe(frame, text=_("Auto-Disable Options"), padding=10)
@@ -123,23 +126,31 @@ class RuleEditor(tb.Toplevel):
         action_toolbar = tb.Frame(actions_frame)
         action_toolbar.pack(fill=X, pady=(0, 10))
 
-        tb.Button(action_toolbar, text=f"+ {_('Record')}", command=self._record_actions).pack(
-            side=LEFT, padx=2
-        )
-        tb.Button(action_toolbar, text=f"⌨ {_('Key Press')}").pack(side=LEFT, padx=2)
-        tb.Button(action_toolbar, text=f"📝 {_('Type Text')}", command=self._add_text).pack(
-            side=LEFT, padx=2
-        )
+        # Left side - Add actions
+        btn_record = tb.Button(action_toolbar, text=f"+ {_('Record')}", command=self._record_actions)
+        btn_record.pack(side=LEFT, padx=2)
+        ToolTip(btn_record, text=_("Record actions by clicking on screen"))
 
-        tb.Button(action_toolbar, text=f"↩️ {_('Undo')}", command=self._undo).pack(
-            side=RIGHT, padx=2
-        )
-        tb.Button(action_toolbar, text=f"↪️ {_('Redo')}", command=self._redo).pack(
-            side=RIGHT, padx=2
-        )
-        tb.Button(action_toolbar, text=f"🗑 {_('Delete')}", command=self._delete_selected).pack(
-            side=RIGHT, padx=2
-        )
+        btn_key = tb.Button(action_toolbar, text=f"⌨ {_('Key Press')}")
+        btn_key.pack(side=LEFT, padx=2)
+        ToolTip(btn_key, text=_("Add a keyboard key press action"))
+
+        btn_type = tb.Button(action_toolbar, text=f"📝 {_('Type Text')}", command=self._add_text)
+        btn_type.pack(side=LEFT, padx=2)
+        ToolTip(btn_type, text=_("Add a text typing action"))
+
+        # Right side - Edit actions
+        btn_delete = tb.Button(action_toolbar, text=f"🗑 {_('Delete')}", command=self._delete_selected)
+        btn_delete.pack(side=RIGHT, padx=2)
+        ToolTip(btn_delete, text=_("Delete selected action (Delete key)"))
+
+        btn_redo = tb.Button(action_toolbar, text=f"↪️ {_('Redo')}", command=self._redo)
+        btn_redo.pack(side=RIGHT, padx=2)
+        ToolTip(btn_redo, text=_("Redo last undone change (Ctrl+Y)"))
+
+        btn_undo = tb.Button(action_toolbar, text=f"↩️ {_('Undo')}", command=self._undo)
+        btn_undo.pack(side=RIGHT, padx=2)
+        ToolTip(btn_undo, text=_("Undo last change (Ctrl+Z)"))
 
         # Action list
         self.action_list = tb.Treeview(
@@ -159,6 +170,16 @@ class RuleEditor(tb.Toplevel):
         self.action_list.bind("<B1-Motion>", self._on_action_drag)
         self.action_list.bind("<ButtonRelease-1>", self._on_action_drop)
         self._drag_data: dict[str, Union[str, int, None]] = {"item": None, "index": -1}
+
+        # Add keyboard navigation for accessibility
+        self.action_list.bind("<Control-Up>", self._move_action_up)
+        self.action_list.bind("<Control-Down>", self._move_action_down)
+        self.action_list.bind("<Control-Key-Up>", self._move_action_up)  # Alternative binding
+        self.action_list.bind("<Control-Key-Down>", self._move_action_down)  # Alternative binding
+
+        # Status label for screen reader feedback
+        self.status_label = tb.Label(actions_frame, text="", font=("Segoe UI", 9))
+        self.status_label.pack(fill=X, pady=(5, 0))
 
         # Populate actions
         if rule and rule.actions:
@@ -389,3 +410,79 @@ class RuleEditor(tb.Toplevel):
 
         # Clear drag data
         self._drag_data = {"item": None, "index": -1}
+
+    def _move_action_up(self, event=None) -> str:
+        """
+        Move selected action up one position (keyboard accessibility).
+
+        Returns:
+            "break" to prevent default handling
+        """
+        selection = self.action_list.selection()
+        if not selection:
+            self.status_label.configure(text=_("No action selected"))
+            return "break"
+
+        item = selection[0]
+        children = self.action_list.get_children()
+        idx = children.index(item)
+
+        if idx == 0:
+            self.status_label.configure(text=_("Action already at the top"))
+            return "break"
+
+        # Save state for undo
+        self._push_undo_state()
+
+        # Move item up
+        self.action_list.move(item, "", idx - 1)
+
+        # Keep selection
+        self.action_list.selection_set(item)
+        self.action_list.focus(item)
+        self.action_list.see(item)
+
+        # Announce to screen reader
+        self.status_label.configure(
+            text=_("Moved action up to position {}").format(idx)
+        )
+
+        return "break"  # Prevent default key handling
+
+    def _move_action_down(self, event=None) -> str:
+        """
+        Move selected action down one position (keyboard accessibility).
+
+        Returns:
+            "break" to prevent default handling
+        """
+        selection = self.action_list.selection()
+        if not selection:
+            self.status_label.configure(text=_("No action selected"))
+            return "break"
+
+        item = selection[0]
+        children = self.action_list.get_children()
+        idx = children.index(item)
+
+        if idx == len(children) - 1:
+            self.status_label.configure(text=_("Action already at the bottom"))
+            return "break"
+
+        # Save state for undo
+        self._push_undo_state()
+
+        # Move item down
+        self.action_list.move(item, "", idx + 1)
+
+        # Keep selection
+        self.action_list.selection_set(item)
+        self.action_list.focus(item)
+        self.action_list.see(item)
+
+        # Announce to screen reader
+        self.status_label.configure(
+            text=_("Moved action down to position {}").format(idx + 2)
+        )
+
+        return "break"  # Prevent default key handling

@@ -152,35 +152,106 @@ class CollapsiblePane(tb.Frame):
 
 
 class StatusIndicator(tb.Frame):
-    """Status light indicator (green/yellow/red)."""
+    """
+    Status indicator with icon, color, and text (accessible).
 
-    def __init__(self, master, status="ok", size=10, **kwargs):
-        super().__init__(master, width=size, height=size, **kwargs)
-        self._indicator_size = size
-        self.canvas = tk.Canvas(
-            self, width=size, height=size, highlightthickness=0, bg=self.cget("background")
-        )
-        self.canvas.pack()
+    Uses multiple visual cues (color, icon, text) to convey status,
+    ensuring accessibility for colorblind users and screen readers.
+    """
 
-        self.status_map = {
-            "ok": "#44cc44",  # Green
-            "warning": "#ffaa00",  # Yellow/Orange
-            "error": "#ff4444",  # Red
-            "inactive": "#aaaaaa",  # Gray
+    def __init__(self, master, status="ok", show_text=True, **kwargs):
+        super().__init__(master, **kwargs)
+        self.show_text = show_text
+
+        # Define status configurations (color + icon + text)
+        self.status_configs = {
+            "ok": {
+                "color": "#44cc44",  # Green
+                "icon": "✓",
+                "text": _("Active"),
+                "tooltip": _("Status: Active and running")
+            },
+            "warning": {
+                "color": "#ffaa00",  # Yellow/Orange
+                "icon": "⚠",
+                "text": _("Warning"),
+                "tooltip": _("Status: Warning - requires attention")
+            },
+            "error": {
+                "color": "#ff4444",  # Red
+                "icon": "❌",
+                "text": _("Error"),
+                "tooltip": _("Status: Error - not functioning")
+            },
+            "inactive": {
+                "color": "#aaaaaa",  # Gray
+                "icon": "○",
+                "text": _("Inactive"),
+                "tooltip": _("Status: Inactive or disabled")
+            }
         }
 
+        # Create icon label (always visible)
+        self.icon_label = tb.Label(
+            self,
+            text="",
+            font=("Segoe UI", 12),
+            width=2
+        )
+        self.icon_label.pack(side=LEFT, padx=(0, 5))
+
+        # Create text label (optional)
+        if show_text:
+            self.text_label = tb.Label(
+                self,
+                text="",
+                font=("Segoe UI", 10)
+            )
+            self.text_label.pack(side=LEFT)
+        else:
+            self.text_label = None
+
+        # Initialize with default status
         self.set_status(status)
 
     def set_status(self, status: str) -> None:
-        """Set the indicator status and update color."""
-        self.status = status
-        color = self.status_map.get(status, self.status_map["inactive"])
+        """
+        Set the indicator status and update all visual cues.
 
-        # Draw filled circle
-        self.canvas.delete("all")
-        x, y = self._indicator_size // 2, self._indicator_size // 2
-        r = (self._indicator_size // 2) - 1
-        self.canvas.create_oval(x - r, y - r, x + r, y + r, fill=color, outline="")
+        Args:
+            status: One of "ok", "warning", "error", "inactive"
+        """
+        self.status = status
+        config = self.status_configs.get(status, self.status_configs["inactive"])
+
+        # Update icon (with color)
+        self.icon_label.configure(
+            text=config["icon"],
+            foreground=config["color"]
+        )
+
+        # Update text label if present
+        if self.text_label:
+            self.text_label.configure(
+                text=config["text"],
+                foreground=config["color"]
+            )
+
+        # Update tooltip (accessible description)
+        try:
+            from ttkbootstrap.tooltip import ToolTip
+            # Remove old tooltip if exists
+            if hasattr(self, '_tooltip'):
+                self._tooltip.hide_tip()
+
+            # Create new tooltip
+            self._tooltip = ToolTip(
+                self.icon_label,
+                text=config["tooltip"],
+                bootstyle="info"
+            )
+        except:
+            pass  # Tooltip is optional
 
 
 class KeybindField(tb.Frame):

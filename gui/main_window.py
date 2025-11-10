@@ -14,6 +14,7 @@ from ttkbootstrap.tooltip import ToolTip
 from core.localization import _
 from gui_components.dialogs import FirstRuleWizard, PerformanceOverlay, TipDialog
 from gui_components.widgets import (
+    CollapsiblePane,
     SearchEntry,
 )
 from src.automator import ScreenAutomator
@@ -43,39 +44,212 @@ class MainWindow(tb.Window):
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self.notifier = None
 
+    def show_error(self, title, message, details=None):
+        """
+        Show user-friendly error dialog.
+
+        Args:
+            title: Short error summary
+            message: User-friendly explanation
+            details: Technical details (optional, collapsible)
+        """
+        dialog = tb.Toplevel(self)
+        dialog.title(title)
+        dialog.geometry("500x300" if details else "500x200")
+        dialog.resizable(False, False)
+
+        # Center the dialog
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
+
+        # Main content frame
+        content_frame = tb.Frame(dialog, padding=20)
+        content_frame.pack(fill=BOTH, expand=True)
+
+        # Error icon and message
+        icon_label = tb.Label(content_frame, text="❌", font=("Segoe UI", 24))
+        icon_label.pack(pady=(0, 10))
+
+        message_label = tb.Label(
+            content_frame,
+            text=message,
+            wraplength=450,
+            justify=LEFT,
+            font=("Segoe UI", 11)
+        )
+        message_label.pack(pady=(0, 15))
+
+        # Optional details (collapsible)
+        if details:
+            details_pane = CollapsiblePane(content_frame, text=_("Technical Details"))
+            details_pane.pack(fill=X, pady=(0, 15))
+
+            details_text = tb.Text(
+                details_pane.content,
+                height=4,
+                wrap=WORD,
+                font=("Courier New", 9)
+            )
+            details_text.insert("1.0", str(details))
+            details_text.configure(state=DISABLED)
+            details_text.pack(fill=BOTH, expand=True, padx=5, pady=5)
+
+        # Close button
+        button_frame = tb.Frame(content_frame)
+        button_frame.pack(side=BOTTOM, fill=X)
+        tb.Button(
+            button_frame,
+            text=_("OK"),
+            command=dialog.destroy,
+            bootstyle=PRIMARY,
+            width=12
+        ).pack(side=RIGHT)
+
+        # Make modal
+        dialog.transient(self)
+        dialog.grab_set()
+        self.wait_window(dialog)
+
+    def show_message(self, title, message, icon="info"):
+        """
+        Show a message dialog.
+
+        Args:
+            title: Dialog title
+            message: Message text
+            icon: Icon type ("info", "warning", "success", "error")
+        """
+        import tkinter.messagebox as messagebox
+
+        icon_map = {
+            "info": messagebox.showinfo,
+            "warning": messagebox.showwarning,
+            "success": messagebox.showinfo,
+            "error": messagebox.showerror
+        }
+
+        show_func = icon_map.get(icon, messagebox.showinfo)
+        show_func(title, message)
+
+    def update_status(self, message):
+        """
+        Update status bar message.
+
+        Args:
+            message: Status message to display
+        """
+        # For now, just print to console
+        # TODO: Add actual status bar label for messages
+        print(f"Status: {message}")
+
+    def get_rules_dir(self):
+        """
+        Get the rules directory path.
+
+        Returns:
+            Path to rules directory
+        """
+        from pathlib import Path
+        return Path("rules")
+
+    def get_current_rule(self):
+        """
+        Get the currently selected rule.
+
+        Returns:
+            Currently selected rule or None
+        """
+        selection = self.rules_tree.selection()
+        if not selection:
+            return None
+
+        rule_id = selection[0]
+        return self.automator.rule_manager.get_rule(rule_id)
+
+    def refresh_rules_list(self):
+        """Refresh the rules list display."""
+        self.refresh_rules()
+
     def _build_toolbar(self):
         toolbar = tb.Frame(self, padding=10)
         toolbar.pack(fill=X)
-        tb.Button(toolbar, text="☰", command=self._toggle_sidebar).pack(side=LEFT, padx=(0, 8))
-        tb.Button(toolbar, text=f'➕ {_("New")}', bootstyle=PRIMARY, command=self._new_rule).pack(
-            side=LEFT, padx=2
-        )
-        tb.Button(toolbar, text=f'✏ {_("Edit")}', command=self._edit_rule).pack(side=LEFT, padx=2)
-        tb.Button(
-            toolbar, text=f'🗑 {_("Delete")}', bootstyle=DANGER, command=self._delete_rule
-        ).pack(side=LEFT, padx=2)
-        tb.Button(toolbar, text=f'▶ {_("Test")}', bootstyle=SUCCESS, command=self._test_rule).pack(
-            side=LEFT, padx=2
-        )
+
+        # Menu/Sidebar toggle
+        btn_menu = tb.Button(toolbar, text=f'☰ {_("Menu")}', command=self._toggle_sidebar)
+        btn_menu.pack(side=LEFT, padx=(0, 8))
+        ToolTip(btn_menu, text=_("Toggle sidebar visibility"))
+
+        # New rule
+        btn_new = tb.Button(toolbar, text=f'➕ {_("New")}', bootstyle=PRIMARY, command=self._new_rule)
+        btn_new.pack(side=LEFT, padx=2)
+        ToolTip(btn_new, text=_("Create a new automation rule (Ctrl+N)"))
+
+        # Edit rule
+        btn_edit = tb.Button(toolbar, text=f'✏ {_("Edit")}', command=self._edit_rule)
+        btn_edit.pack(side=LEFT, padx=2)
+        ToolTip(btn_edit, text=_("Edit the selected rule (Ctrl+E)"))
+
+        # Delete rule
+        btn_delete = tb.Button(toolbar, text=f'🗑 {_("Delete")}', bootstyle=DANGER, command=self._delete_rule)
+        btn_delete.pack(side=LEFT, padx=2)
+        ToolTip(btn_delete, text=_("Delete the selected rule (Delete)"))
+
+        # Test rule
+        btn_test = tb.Button(toolbar, text=f'▶ {_("Test")}', bootstyle=SUCCESS, command=self._test_rule)
+        btn_test.pack(side=LEFT, padx=2)
+        ToolTip(btn_test, text=_("Test the selected rule (Ctrl+T)"))
+
+        # Conflicts button (hidden by default)
         self.btn_conflicts = tb.Button(
             toolbar, text="⚠ 0", bootstyle=WARNING, command=self._show_conflicts_dialog
         )
         self.btn_conflicts.pack(side=LEFT, padx=2)
         self.btn_conflicts.pack_forget()
-        self.entry_search = SearchEntry(toolbar, callback=self._filter_rules, width=25)
-        self.entry_search.pack(side=RIGHT, padx=5)
-        ToolTip(self.entry_search, text=_("Filter rules (type)"))
-        tb.Button(toolbar, text="⚡", command=self._toggle_perf_overlay).pack(side=RIGHT, padx=5)
-        self.btn_theme = tb.Button(toolbar, text="🌙", command=self._toggle_theme)
-        self.btn_theme.pack(side=RIGHT, padx=5)
-        tb.Button(toolbar, text="📑", command=self._open_column_dialog).pack(side=RIGHT, padx=5)
-        tb.Button(toolbar, text="❓", command=self._show_help).pack(side=RIGHT, padx=5)
-        tb.Button(toolbar, text="💡", command=self._show_tip).pack(side=RIGHT, padx=5)
+        ToolTip(self.btn_conflicts, text=_("View rule conflicts"))
+
+        # Settings button
+        btn_settings = tb.Button(toolbar, text=f'⚙️ {_("Settings")}', command=self._open_settings_dialog)
+        btn_settings.pack(side=RIGHT, padx=5)
+        ToolTip(btn_settings, text=_("Open application settings"))
+
+        # Monitor toggle
         self.btn_toggle_monitor = tb.Button(
             toolbar, text=_("Show Monitor"), command=self._toggle_monitor
         )
         self.btn_toggle_monitor.pack(side=RIGHT, padx=5)
-        tb.Button(toolbar, text="⚙️", command=self._open_settings_dialog).pack(side=RIGHT, padx=5)
+        ToolTip(self.btn_toggle_monitor, text=_("Start/stop rule monitoring"))
+
+        # Tips button
+        btn_tips = tb.Button(toolbar, text=f'💡 {_("Tips")}', command=self._show_tip)
+        btn_tips.pack(side=RIGHT, padx=5)
+        ToolTip(btn_tips, text=_("Show helpful tips (F1)"))
+
+        # Help button
+        btn_help = tb.Button(toolbar, text=f'❓ {_("Help")}', command=self._show_help)
+        btn_help.pack(side=RIGHT, padx=5)
+        ToolTip(btn_help, text=_("Open help documentation"))
+
+        # Columns button
+        btn_columns = tb.Button(toolbar, text=f'📑 {_("Columns")}', command=self._open_column_dialog)
+        btn_columns.pack(side=RIGHT, padx=5)
+        ToolTip(btn_columns, text=_("Configure visible columns"))
+
+        # Theme toggle
+        self.btn_theme = tb.Button(toolbar, text=f'🌙 {_("Theme")}', command=self._toggle_theme)
+        self.btn_theme.pack(side=RIGHT, padx=5)
+        ToolTip(self.btn_theme, text=_("Switch between light and dark theme"))
+
+        # Performance overlay
+        btn_perf = tb.Button(toolbar, text=f'⚡ {_("Performance")}', command=self._toggle_perf_overlay)
+        btn_perf.pack(side=RIGHT, padx=5)
+        ToolTip(btn_perf, text=_("Show performance metrics (F12)"))
+
+        # Search entry
+        self.entry_search = SearchEntry(toolbar, callback=self._filter_rules, width=25)
+        self.entry_search.pack(side=RIGHT, padx=5)
+        ToolTip(self.entry_search, text=_("Filter rules by name or description"))
 
     def _build_panes(self):
         self.paned = tb.PanedWindow(self, orient=HORIZONTAL)
@@ -165,45 +339,110 @@ class MainWindow(tb.Window):
             FirstRuleWizard(self)
             # Handle new rule creation
         except Exception as e:
-            print(f"Error creating new rule: {e}")
+            self.show_error(
+                title=_("Cannot Create Rule"),
+                message=_("Unable to open the rule creation wizard. Please try again."),
+                details=str(e)
+            )
 
     def _edit_rule(self):
         """Edit the selected rule"""
         try:
-            # Get selected rule and open editor
-            print("Edit rule functionality not yet implemented")
+            selected_rule = self.get_current_rule()
+            if not selected_rule:
+                self.show_message(
+                    title=_("No Rule Selected"),
+                    message=_("Please select a rule from the list to edit."),
+                    icon="info"
+                )
+                return
+
+            self.show_message(
+                title=_("Feature Not Available"),
+                message=_("Rule editing is not yet implemented. This feature is coming soon!"),
+                icon="info"
+            )
         except Exception as e:
-            print(f"Error editing rule: {e}")
+            self.show_error(
+                title=_("Cannot Edit Rule"),
+                message=_("An error occurred while trying to edit the rule."),
+                details=str(e)
+            )
 
     def _delete_rule(self):
         """Delete the selected rule"""
         try:
-            # Confirm and delete selected rule
-            print("Delete rule functionality not yet implemented")
+            selected_rule = self.get_current_rule()
+            if not selected_rule:
+                self.show_message(
+                    title=_("No Rule Selected"),
+                    message=_("Please select a rule from the list to delete."),
+                    icon="info"
+                )
+                return
+
+            self.show_message(
+                title=_("Feature Not Available"),
+                message=_("Rule deletion is not yet implemented. This feature is coming soon!"),
+                icon="info"
+            )
         except Exception as e:
-            print(f"Error deleting rule: {e}")
+            self.show_error(
+                title=_("Cannot Delete Rule"),
+                message=_("An error occurred while trying to delete the rule."),
+                details=str(e)
+            )
 
     def _test_rule(self):
         """Test the selected rule"""
         try:
-            # Test the selected rule
-            print("Test rule functionality not yet implemented")
+            selected_rule = self.get_current_rule()
+            if not selected_rule:
+                self.show_message(
+                    title=_("No Rule Selected"),
+                    message=_("Please select a rule from the list to test."),
+                    icon="info"
+                )
+                return
+
+            self.show_message(
+                title=_("Feature Not Available"),
+                message=_("Rule testing is not yet implemented. This feature is coming soon!"),
+                icon="info"
+            )
         except Exception as e:
-            print(f"Error testing rule: {e}")
+            self.show_error(
+                title=_("Cannot Test Rule"),
+                message=_("An error occurred while trying to test the rule."),
+                details=str(e)
+            )
 
     def _show_conflicts_dialog(self):
         """Show conflicts dialog"""
         try:
-            print("Show conflicts dialog not yet implemented")
+            self.show_message(
+                title=_("Feature Not Available"),
+                message=_("Conflict resolution is not yet implemented. This feature is coming soon!"),
+                icon="info"
+            )
         except Exception as e:
-            print(f"Error showing conflicts: {e}")
+            self.show_error(
+                title=_("Cannot Show Conflicts"),
+                message=_("An error occurred while trying to show conflicts."),
+                details=str(e)
+            )
 
     def _filter_rules(self, query):
         """Filter rules based on search query"""
         try:
+            # TODO: Implement actual filtering logic
             print(f"Filtering rules with query: {query}")
         except Exception as e:
-            print(f"Error filtering rules: {e}")
+            self.show_error(
+                title=_("Cannot Filter Rules"),
+                message=_("An error occurred while filtering the rules list."),
+                details=str(e)
+            )
 
     def _toggle_theme(self):
         """Toggle between light and dark theme"""
@@ -211,26 +450,46 @@ class MainWindow(tb.Window):
             current_theme = self.style.theme_use()
             if "dark" in current_theme:
                 self.style.theme_use("flatly")
-                self.btn_theme.configure(text="🌙")
+                self.btn_theme.configure(text=f'🌙 {_("Theme")}')
             else:
                 self.style.theme_use("darkly")
-                self.btn_theme.configure(text="☀️")
+                self.btn_theme.configure(text=f'☀️ {_("Theme")}')
         except Exception as e:
-            print(f"Error toggling theme: {e}")
+            self.show_error(
+                title=_("Cannot Change Theme"),
+                message=_("An error occurred while switching the theme."),
+                details=str(e)
+            )
 
     def _open_column_dialog(self):
         """Open column configuration dialog"""
         try:
-            print("Column dialog not yet implemented")
+            self.show_message(
+                title=_("Feature Not Available"),
+                message=_("Column configuration is not yet implemented. This feature is coming soon!"),
+                icon="info"
+            )
         except Exception as e:
-            print(f"Error opening column dialog: {e}")
+            self.show_error(
+                title=_("Cannot Open Column Dialog"),
+                message=_("An error occurred while trying to open column settings."),
+                details=str(e)
+            )
 
     def _show_help(self):
         """Show help dialog"""
         try:
-            print("Help dialog not yet implemented")
+            self.show_message(
+                title=_("Feature Not Available"),
+                message=_("Help documentation is not yet implemented. This feature is coming soon!"),
+                icon="info"
+            )
         except Exception as e:
-            print(f"Error showing help: {e}")
+            self.show_error(
+                title=_("Cannot Show Help"),
+                message=_("An error occurred while trying to show help."),
+                details=str(e)
+            )
 
     def _show_tip(self):
         """Show tip dialog"""
@@ -238,7 +497,11 @@ class MainWindow(tb.Window):
             if self.show_tips:
                 TipDialog(self)
         except Exception as e:
-            print(f"Error showing tip: {e}")
+            self.show_error(
+                title=_("Cannot Show Tip"),
+                message=_("An error occurred while trying to show the tip dialog."),
+                details=str(e)
+            )
 
     def _toggle_monitor(self):
         """Toggle monitoring on/off"""
@@ -246,24 +509,36 @@ class MainWindow(tb.Window):
             if self.automator.is_monitoring:
                 self.automator.stop_monitoring()
                 self.btn_toggle_monitor.configure(text=_("Start Monitor"))
+                self.update_status(_("Monitoring stopped"))
             else:
                 self.automator.start_monitoring()
                 self.btn_toggle_monitor.configure(text=_("Stop Monitor"))
+                self.update_status(_("Monitoring started"))
         except Exception as e:
-            print(f"Error toggling monitor: {e}")
+            self.show_error(
+                title=_("Cannot Toggle Monitor"),
+                message=_("An error occurred while starting or stopping the monitor."),
+                details=str(e)
+            )
 
     def _open_settings_dialog(self):
         """Open settings dialog"""
         try:
-            print("Settings dialog not yet implemented")
+            self.show_message(
+                title=_("Feature Not Available"),
+                message=_("Settings dialog is not yet implemented. This feature is coming soon!"),
+                icon="info"
+            )
         except Exception as e:
-            print(f"Error opening settings: {e}")
+            self.show_error(
+                title=_("Cannot Open Settings"),
+                message=_("An error occurred while trying to open settings."),
+                details=str(e)
+            )
 
     def refresh_rules(self):
         """Refresh the rules list"""
         try:
-            print("Refreshing rules list")
-
             # Clear existing items
             for item in self.rules_tree.get_children():
                 self.rules_tree.delete(item)
@@ -278,17 +553,14 @@ class MainWindow(tb.Window):
                     "", "end", iid=rule.id, values=(rule.name, enabled_text, rule.description)
                 )
 
-            print(f"Loaded {len(rules)} rules")
+            self.update_status(_(f"Loaded {len(rules)} rules"))
 
         except Exception as e:
-            print(f"Error refreshing rules: {e}")
-            # Show error in GUI if possible
-            try:
-                import tkinter.messagebox as messagebox
-
-                messagebox.showerror(_("Error"), f"Failed to refresh rules: {e}")
-            except:
-                pass
+            self.show_error(
+                title=_("Cannot Refresh Rules"),
+                message=_("An error occurred while loading the rules list."),
+                details=str(e)
+            )
 
     def _on_close(self):
         """Handle window close event"""
@@ -298,5 +570,6 @@ class MainWindow(tb.Window):
             save_config("settings.json", self.cfg)
             self.destroy()
         except Exception as e:
-            print(f"Error closing application: {e}")
+            # On close errors, just log and destroy anyway
+            print(f"Error during cleanup: {e}")
             self.destroy()
