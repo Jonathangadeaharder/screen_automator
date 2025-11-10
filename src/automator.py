@@ -28,8 +28,8 @@ class ScreenAutomator:
 
         self.running = False
         self.check_interval = 10.0  # Check every 10 seconds
-        self.worker_thread = None
-        self.mouse_listener = None
+        self.worker_thread: Optional[threading.Thread] = None
+        self.mouse_listener: Optional[mouse.Listener] = None
 
         # Mouse tracking
         self.last_mouse_move_time = time.time()

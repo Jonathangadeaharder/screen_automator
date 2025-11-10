@@ -22,7 +22,8 @@ def load_config(filename: str) -> dict[str, Any]:
     config_path = get_config_dir() / filename
     if config_path.exists():
         try:
-            return json.loads(config_path.read_text(encoding="utf-8"))
+            result = json.loads(config_path.read_text(encoding="utf-8"))
+            return result if isinstance(result, dict) else {}
         except Exception:
             return {}
     return {}

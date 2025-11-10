@@ -469,7 +469,7 @@ class ContextAwareAutomator(ScreenAutomator):
                 return False
 
             if not hasattr(self, "_context_hashes"):
-                self._context_hashes = {}
+                self._context_hashes: dict[str, str] = {}
             if not hasattr(self, "_context_unchanged_start"):
                 self._context_unchanged_start = {}
 
@@ -704,14 +704,13 @@ class ContextAwareAutomator(ScreenAutomator):
 
     def get_debug_info(self) -> dict[str, Any]:
         """Get comprehensive debug information"""
-        info = {
+        info: dict[str, Any] = {
             "context_aware_active": self.context_execution_active,
             "monitoring_running": self.running,
             "current_context_window": (
                 self.current_context_window.title if self.current_context_window else None
             ),
             "keep_context_focused": self.keep_context_window_focused,
-            "cluster_cooldown": self.cluster_cooldown,
             "cursor_tracking": {
                 "has_pyautogui": HAS_PYAUTOGUI,
                 "original_pos": self.original_cursor_pos,
@@ -734,13 +733,10 @@ class ContextAwareAutomator(ScreenAutomator):
         # Window manager info
         try:
             windows = self.window_manager.get_running_windows()
+            active_window = self.window_manager.get_active_window()
             info["windows"] = {
                 "total_found": len(windows),
-                "active_window": (
-                    self.window_manager.get_active_window().title
-                    if self.window_manager.get_active_window()
-                    else None
-                ),
+                "active_window": active_window.title if active_window else None,
             }
         except Exception as e:
             info["windows"] = {"error": str(e)}

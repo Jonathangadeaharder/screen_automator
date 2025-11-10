@@ -16,8 +16,9 @@ sys.modules["pynput"] = MagicMock()
 sys.modules["pynput.mouse"] = MagicMock()
 sys.modules["pynput.keyboard"] = MagicMock()
 
-mock_pyautogui = MagicMock()
-sys.modules["pyautogui"] = mock_pyautogui
+# Create pyautogui mock - ensure it's in sys.modules for imports
+if "pyautogui" not in sys.modules or not isinstance(sys.modules["pyautogui"], MagicMock):
+    sys.modules["pyautogui"] = MagicMock()
 
 sys.modules["screeninfo"] = MagicMock()
 
@@ -34,6 +35,16 @@ from src.actionability import (
 # ============================================================================
 # Fixtures
 # ============================================================================
+
+
+@pytest.fixture(autouse=True)
+def reset_pyautogui_mock():
+    """Reset the pyautogui mock before each test to avoid shared state issues."""
+    # Get the current mock from sys.modules
+    mock = sys.modules["pyautogui"]
+    # Reset it to clear any call history from previous tests
+    mock.reset_mock()
+    yield mock
 
 
 @pytest.fixture
@@ -335,7 +346,7 @@ def test_click_image_with_auto_wait(smart_automator, mock_image_detector):
     mock_image_detector.find_image.assert_called()
 
     # Should have clicked (pyautogui is mocked globally)
-    mock_pyautogui.click.assert_called()
+    sys.modules["pyautogui"].click.assert_called()
 
 
 def test_click_image_custom_timeout(mock_image_detector):
@@ -359,7 +370,7 @@ def test_click_image_without_stability_check(smart_automator, mock_image_detecto
     """Test click_image() can skip stability check."""
     smart_automator.click_image("button.png", ensure_stable=False)
 
-    mock_pyautogui.click.assert_called()
+    sys.modules["pyautogui"].click.assert_called()
 
 
 def test_click_image_calculates_center(mock_image_detector):
@@ -370,15 +381,15 @@ def test_click_image_calculates_center(mock_image_detector):
     smart.click_image("button.png", ensure_stable=False)
 
     # Should click at center: (100 + 50/2, 200 + 50/2) = (125, 225)
-    mock_pyautogui.click.assert_called()
-    call_args = mock_pyautogui.click.call_args
+    sys.modules["pyautogui"].click.assert_called()
+    call_args = sys.modules["pyautogui"].click.call_args
     # Check coordinates are reasonable (center of image)
     assert call_args is not None
 
 
 def test_click_image_not_found(mock_image_detector_not_found):
     """Test click_image() raises error when image not found."""
-    mock_pyautogui.reset_mock()  # Reset to check it wasn't called
+    sys.modules["pyautogui"].reset_mock()  # Reset to check it wasn't called
     smart = SmartAutomator(mock_image_detector_not_found, timeout=500)
 
     with pytest.raises(ActionabilityTimeoutError):
@@ -507,7 +518,7 @@ def test_timeout_error_inheritance():
 
 def test_complete_click_workflow(mock_image_detector):
     """Test complete workflow: wait for image, check stability, click."""
-    mock_pyautogui.reset_mock()
+    sys.modules["pyautogui"].reset_mock()
     mock_image_detector.find_image = Mock(return_value=(100, 200, 50, 50))
     smart = SmartAutomator(mock_image_detector, timeout=2000)
 
@@ -517,7 +528,7 @@ def test_complete_click_workflow(mock_image_detector):
     mock_image_detector.find_image.assert_called()
 
     # Should have clicked
-    mock_pyautogui.click.assert_called_once()
+    sys.modules["pyautogui"].click.assert_called_once()
 
 
 def test_wait_then_disappear_workflow(smart_automator):
@@ -561,11 +572,11 @@ def test_multiple_stability_checks(auto_waiter):
 
 def test_click_multiple_images_sequence(mock_image_detector):
     """Test clicking multiple images in sequence."""
-    mock_pyautogui.reset_mock()
+    sys.modules["pyautogui"].reset_mock()
     smart = SmartAutomator(mock_image_detector, timeout=2000)
 
     smart.click_image("button1.png", ensure_stable=False)
     smart.click_image("button2.png", ensure_stable=False)
     smart.click_image("button3.png", ensure_stable=False)
 
-    assert mock_pyautogui.click.call_count == 3
+    assert sys.modules["pyautogui"].click.call_count == 3

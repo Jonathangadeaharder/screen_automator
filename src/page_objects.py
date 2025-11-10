@@ -108,12 +108,12 @@ class Element:
             if hasattr(self.automator, "find_image"):
                 location = self.automator.find_image(self.locator.value)
                 if location:
-                    self._cached_location = location
-                    return location
+                    self._cached_location = location  # type: ignore[assignment]
+                    return location  # type: ignore[return-value]
                 raise TimeoutError(f"Image '{self.locator.value}' not found")
 
         elif self.locator.type == LocatorType.COORDINATES:
-            return self.locator.value
+            return self.locator.value  # type: ignore[return-value]
 
         elif self.locator.type == LocatorType.TEXT:
             # Property-based finding would go here

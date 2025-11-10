@@ -73,7 +73,7 @@ class WindowManager:
 
     def _get_windows_windows(self, include_minimized: bool) -> list[WindowInfo]:
         """Get windows on Windows OS using win32gui"""
-        windows = []
+        windows: list[WindowInfo] = []
 
         def enum_windows_callback(hwnd, windows_list):
             if win32gui.IsWindow(hwnd) and win32gui.IsWindowVisible(hwnd):

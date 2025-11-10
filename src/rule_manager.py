@@ -172,7 +172,7 @@ class RuleManager:
 
     def get_rules_by_cluster(self) -> dict[str, list[Rule]]:
         """Group enabled rules by cluster_group for efficient execution"""
-        clusters = {}
+        clusters: dict[str, list[Rule]] = {}
         enabled_rules = self.list_enabled_rules()
 
         for rule in enabled_rules:

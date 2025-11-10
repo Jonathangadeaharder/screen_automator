@@ -123,7 +123,7 @@ class AutoWaiter:
 
     def wait_for_image(
         self, image_path: str, automator: Any, timeout: Optional[int] = None
-    ) -> tuple[int, int]:
+    ) -> tuple[int, int, int, int]:
         """
         Wait for an image to appear on screen.
 
@@ -140,7 +140,7 @@ class AutoWaiter:
             timeout: Override default timeout in milliseconds
 
         Returns:
-            Tuple of (x, y) coordinates where image was found
+            Tuple of (x, y, width, height) where image was found
 
         Raises:
             TimeoutError: If image not found within timeout period
@@ -153,7 +153,8 @@ class AutoWaiter:
             except Exception:
                 return None
 
-        return self.wait_for_condition(find_image, f"image '{image_path}' to appear", timeout)
+        result = self.wait_for_condition(find_image, f"image '{image_path}' to appear", timeout)
+        return result  # type: ignore[return-value]
 
     def ensure_stable(
         self,
