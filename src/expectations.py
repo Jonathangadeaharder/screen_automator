@@ -215,7 +215,8 @@ class ImageExpectation(Expectation):
             try:
                 location = self.subject.find_image(image_path)
                 if location:
-                    actual_x, actual_y = location
+                    # find_image returns (x, y, width, height)
+                    actual_x, actual_y = location[0], location[1]
                     dx = abs(actual_x - x)
                     dy = abs(actual_y - y)
 
