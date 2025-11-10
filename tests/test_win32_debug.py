@@ -9,10 +9,10 @@ print(f"System: {platform.system()}")
 
 if platform.system() == "Windows":
     try:
-        import psutil
-        import win32con
+        import psutil  # noqa: F401 - testing availability
+        import win32con  # noqa: F401 - testing availability
         import win32gui
-        import win32process
+        import win32process  # noqa: F401 - testing availability
 
         print("✅ All win32 modules imported successfully")
         print(f"win32gui version: {win32gui.__file__}")

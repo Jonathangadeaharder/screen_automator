@@ -458,7 +458,7 @@ class WindowManager:
                 try:
                     left, top, right, bottom = win32gui.GetWindowRect(window_info.handle)
                     x, y, width, height = left, top, right - left, bottom - top
-                except:
+                except Exception:
                     # Use stored coordinates if GetWindowRect fails
                     x, y, width, height = (
                         window_info.x,
@@ -569,7 +569,7 @@ class WindowManager:
                         mfcDC.DeleteDC()
                     if "hwndDC" in locals():
                         win32gui.ReleaseDC(hwnd, hwndDC)
-                except:
+                except Exception:
                     pass
 
         except Exception as e:

@@ -271,7 +271,7 @@ class TestGUIComprehensive:
         if hasattr(self, "root") and self.root is not None:
             try:
                 self.root.destroy()
-            except:
+            except Exception:
                 pass
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 

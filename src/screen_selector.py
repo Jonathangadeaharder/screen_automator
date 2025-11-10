@@ -5,9 +5,14 @@ from tkinter import messagebox, simpledialog
 import pyautogui
 
 try:
-    from screeninfo import get_monitors  # type: ignore
+    from screeninfo import get_monitors
 except ImportError:
     get_monitors = None  # graceful fallback
+
+try:
+    from pynput import keyboard
+except ImportError:
+    keyboard = None  # graceful fallback
 
 
 class ScreenSelector:
@@ -279,12 +284,11 @@ class KeyRecorder:
         stop_button.pack(pady=5)
 
         # Start listening for keys
-        from pynput import keyboard
-
-        self.listener = keyboard.Listener(
-            on_press=self.on_key_press, on_release=self.on_key_release
-        )
-        self.listener.start()
+        if keyboard:
+            self.listener = keyboard.Listener(
+                on_press=self.on_key_press, on_release=self.on_key_release
+            )
+            self.listener.start()
 
         self.root.mainloop()
 
@@ -314,7 +318,7 @@ class KeyRecorder:
 
     def on_key_release(self, key):
         """Handle key release events"""
-        if key == keyboard.Key.esc and self.recording:
+        if keyboard and key == keyboard.Key.esc and self.recording:
             self.stop_recording()
 
     def stop_recording(self):

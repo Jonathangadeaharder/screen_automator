@@ -9,9 +9,9 @@ from pynput import mouse
 
 # Monitor info utilities
 try:
-    from screeninfo import get_monitors  # type: ignore
+    from screeninfo import get_monitors
 except ImportError:  # graceful fallback – assumes single monitor
-    get_monitors = None  # type: ignore
+    get_monitors = None
 
 import pyautogui  # late import ok here
 

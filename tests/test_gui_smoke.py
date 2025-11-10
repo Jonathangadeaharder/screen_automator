@@ -127,7 +127,7 @@ def test_gui_dependencies_check():
     """Test that GUI dependencies can be checked without importing GUI modules."""
     # Test core Python GUI module availability
     try:
-        import tkinter
+        import tkinter  # noqa: F401 - testing availability
 
         print("+ tkinter: Available")
     except ImportError:

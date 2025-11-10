@@ -1,6 +1,6 @@
 import os
 import time
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 try:
     import pyautogui
@@ -258,117 +258,6 @@ class ContextAwareAutomator(ScreenAutomator):
         except Exception as e:
             print(f"Error finding target window for rule '{rule.name}': {e}")
             return None
-
-    def _switch_to_context_window(self, target_window: WindowInfo) -> bool:
-        """Determine the target window for a cluster of rules"""
-        if not cluster_rules:
-            print("⚠️ No rules provided for window targeting")
-            if self.on_error:
-                self.on_error("No rules provided for window targeting")
-            return None
-
-        print(f"🔍 Analyzing {len(cluster_rules)} rules for window targeting...")
-
-        # Check if rules have specific window targeting
-        for i, rule in enumerate(cluster_rules):
-            print(f"📋 Rule {i+1}: '{rule.name}'")
-            print(f"   - target_window_title: '{getattr(rule, 'target_window_title', 'None')}'")
-            print(f"   - target_window_process: '{getattr(rule, 'target_window_process', 'None')}'")
-            print(f"   - window_exact_match: {getattr(rule, 'window_exact_match', False)}")
-
-            # Determine window identification method
-            window_id_method = getattr(rule, "window_id_method", "auto").lower()
-
-            # Try to find window based on the specified method
-            if window_id_method == "class" and getattr(rule, "target_window_class", ""):
-                # Use class-based targeting (most reliable)
-                print(f"🔍 Searching for window with class: '{rule.target_window_class}'")
-                window = self.window_manager.find_window_by_class(rule.target_window_class)
-                if window:
-                    print(f"✅ Found window by class: {window.title} (Class: {window.class_name})")
-                    return window
-                else:
-                    error_msg = f"⚠️ Target window class not found: '{rule.target_window_class}'"
-                    print(f"❌ {error_msg}")
-                    if self.on_error:
-                        self.on_error(error_msg)
-
-            elif window_id_method == "process" and rule.target_window_process:
-                # Use process-based targeting
-                print(f"🔍 Searching for windows with process: '{rule.target_window_process}'")
-                windows = self.window_manager.find_windows_by_process(rule.target_window_process)
-                if windows:
-                    print(
-                        f"✅ Found {len(windows)} windows with process '{rule.target_window_process}'"
-                    )
-                    print(f"   Using first window: {windows[0].title}")
-                    return windows[0]  # Return first matching window
-                else:
-                    error_msg = f"⚠️ Target process not found: '{rule.target_window_process}'"
-                    print(f"❌ {error_msg}")
-                    if self.on_error:
-                        self.on_error(error_msg)
-
-            # Auto method or fallback: try all available targeting methods
-            else:
-                # First try class-based targeting if available
-                if getattr(rule, "target_window_class", ""):
-                    print(f"🔍 Auto: Searching for window with class: '{rule.target_window_class}'")
-                    window = self.window_manager.find_window_by_class(rule.target_window_class)
-                    if window:
-                        print(
-                            f"✅ Found window by class: {window.title} (Class: {window.class_name})"
-                        )
-                        return window
-
-                # Then try process-based targeting
-                if rule.target_window_process:
-                    print(
-                        f"🔍 Auto: Searching for windows with process: '{rule.target_window_process}'"
-                    )
-                    windows = self.window_manager.find_windows_by_process(
-                        rule.target_window_process
-                    )
-                    if windows:
-                        print(
-                            f"✅ Found {len(windows)} windows with process '{rule.target_window_process}'"
-                        )
-                        print(f"   Using first window: {windows[0].title}")
-                        return windows[0]  # Return first matching window
-                    else:
-                        error_msg = f"⚠️ Target process not found: '{rule.target_window_process}'"
-                        print(f"❌ {error_msg}")
-                        if self.on_error:
-                            self.on_error(error_msg)
-
-                # Legacy support: Try title-based targeting as last resort
-                if getattr(rule, "target_window_title", ""):
-                    print(
-                        f"🔍 Auto: Searching for window with title (legacy): '{rule.target_window_title}'"
-                    )
-                    window = self.window_manager.find_window_by_title(
-                        rule.target_window_title,
-                        exact_match=getattr(rule, "window_exact_match", False),
-                    )
-                    if window:
-                        print(f"✅ Found window by title: {window.title}")
-                        print(
-                            "ℹ️ Note: Title-based targeting is deprecated. Consider using class or process targeting."
-                        )
-                        return window
-
-        # No specific window targeting, use current active window
-        print("🔍 No specific window targeting found, getting active window...")
-        active_window = self.window_manager.get_active_window()
-        if active_window:
-            print(f"✅ Using current active window: {active_window.title}")
-        else:
-            error_msg = "❌ Could not get active window"
-            print(error_msg)
-            if self.on_error:
-                self.on_error(error_msg)
-
-        return active_window
 
     def _switch_to_context_window(self, target_window: WindowInfo) -> bool:
         """Switch to the target window context"""
@@ -791,7 +680,7 @@ class ContextAwareAutomator(ScreenAutomator):
         else:
             print("No context to restore")
 
-    def get_cursor_info(self) -> dict[str, any]:
+    def get_cursor_info(self) -> dict[str, Any]:
         """Get current cursor position information"""
         info = {
             "has_pyautogui": HAS_PYAUTOGUI,
@@ -813,7 +702,7 @@ class ContextAwareAutomator(ScreenAutomator):
 
         return info
 
-    def get_debug_info(self) -> dict[str, any]:
+    def get_debug_info(self) -> dict[str, Any]:
         """Get comprehensive debug information"""
         info = {
             "context_aware_active": self.context_execution_active,
