@@ -6,7 +6,7 @@ import uuid
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 import ttkbootstrap as tb
-from ttkbootstrap.constants import *
+from ttkbootstrap.constants import BOTH, EW, LEFT, NSEW, NW, PRIMARY, RIGHT, W, X
 from ttkbootstrap.tooltip import ToolTip
 
 # Monitor info utilities

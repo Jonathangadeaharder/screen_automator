@@ -3,7 +3,7 @@
 import tkinter as tk
 
 import ttkbootstrap as tb
-from ttkbootstrap.constants import *
+from ttkbootstrap.constants import BOTH, END, LEFT, PRIMARY, X
 
 from core.localization import _
 

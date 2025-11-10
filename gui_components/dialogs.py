@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING
 
 import ttkbootstrap as tb
-from ttkbootstrap.constants import *
+from ttkbootstrap.constants import BOTH, CENTER, DISABLED, LEFT, NORMAL, PRIMARY, RIGHT, X
 
 try:
     import psutil

@@ -5,7 +5,7 @@ import time
 
 import ttkbootstrap as tb
 from pynput import keyboard, mouse
-from ttkbootstrap.constants import *
+from ttkbootstrap.constants import BOTH, DANGER, END, LEFT, X
 
 from core.localization import _
 from src.action_executor import (
